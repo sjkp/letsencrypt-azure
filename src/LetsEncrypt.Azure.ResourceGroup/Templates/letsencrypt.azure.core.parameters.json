@@ -1,0 +1,40 @@
+﻿{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "keyVaultName": {
+      "value": "letsencrypt-vault"
+    },
+    "tenantId": {
+      "value": ""
+    },
+    "objectId": {
+      "value": ""
+    },
+    "keysPermissions": {
+      "value": [
+        "all"
+      ]
+    },
+    "secretsPermissions": {
+      "value": [
+        "all"
+      ]
+    },
+    "skuName": {
+      "value": "Standard"
+    },
+    "enableVaultForDeployment": {
+      "value": false
+    },
+    "enableVaultForDiskEncryption": {
+      "value": false
+    },
+    "enabledForTemplateDeployment": {
+      "value": false
+    },
+    "appName": {
+      "value": "letsencryptfunctionapp"
+    }
+  }
+}

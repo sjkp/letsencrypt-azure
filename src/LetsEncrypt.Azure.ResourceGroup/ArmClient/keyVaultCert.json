@@ -1,0 +1,7 @@
+﻿{
+  "Location": "northeurope",
+  "Properties": {
+    "KeyVaultSecretName": "keyVaultCert",
+    "KeyVaultId": "/subscriptions/14fe4c66-c75a-4323-881b-ea53c1d86a9d/resourceGroups/LetsEncrypt.Azure/providers/Microsoft.KeyVault/vaults/sjkptest"
+  }
+}

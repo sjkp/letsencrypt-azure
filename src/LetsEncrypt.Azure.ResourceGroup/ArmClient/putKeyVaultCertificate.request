@@ -1,0 +1,3 @@
+﻿ARMClient.exe PUT /subscriptions/14fe4c66-c75a-4323-881b-ea53c1d86a9d/resourceGroups/LetsEncrypt.Azure.WebAppTest/providers/Microsoft.Web/certificates/keyvaultcertificate?api-version=2016-03-01 @keyVaultCert.json
+  
+  
