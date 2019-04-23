@@ -70,7 +70,7 @@ namespace LetsEncrypt.Azure.Core.V2
 
             logger.LogInformation("Finished validating dns challenge token, response was {ChallengeStatus} more info at {ChallengeStatusUrl}", chalResp.Status, chalResp.Url);
 
-            var privateKey = KeyFactory.NewKey(KeyAlgorithm.ES256);
+            var privateKey = KeyFactory.NewKey(KeyAlgorithm.RS256);
             var cert = await order.Generate(new Certes.CsrInfo
             {
                 CountryName = acmeConfig.CsrInfo.CountryName,

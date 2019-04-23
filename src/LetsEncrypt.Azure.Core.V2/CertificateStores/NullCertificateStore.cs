@@ -3,7 +3,7 @@ using LetsEncrypt.Azure.Core.V2.Models;
 
 namespace LetsEncrypt.Azure.Core.V2.CertificateStores
 {
-    internal class NullCertificateStore : ICertificateStore
+    public class NullCertificateStore : ICertificateStore
     {
         public Task<CertificateInfo> GetCertificate(string name, string password)
         {

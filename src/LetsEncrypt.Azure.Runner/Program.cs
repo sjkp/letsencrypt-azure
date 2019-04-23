@@ -46,16 +46,15 @@ namespace LetsEncrypt.Azure.Runner
             .Configure<LoggerFilterOptions>(options => options.MinLevel = LogLevel.Information)            
             .AddAzureAppService(azureAppSettings);
 
-            string azureStorageConnectionString = Configuration.GetConnectionString("AzureStorageAccount");
             if (Configuration.GetSection("DnsSettings").Get<GoDaddyDnsProvider.GoDaddyDnsSettings>().ShopperId != null)
             {
-                serviceCollection.AddAcmeClient<GoDaddyDnsProvider>(Configuration.GetSection("DnsSettings").Get<GoDaddyDnsProvider.GoDaddyDnsSettings>(), azureStorageConnectionString);
+                serviceCollection.AddAcmeClient<GoDaddyDnsProvider>(Configuration.GetSection("DnsSettings").Get<GoDaddyDnsProvider.GoDaddyDnsSettings>());
             } else if (Configuration.GetSection("DnsSettings").Get<UnoEuroDnsSettings>().AccountName != null)
             {
-                serviceCollection.AddAcmeClient<UnoEuroDnsProvider>(Configuration.GetSection("DnsSettings").Get<UnoEuroDnsSettings>(), azureStorageConnectionString);
+                serviceCollection.AddAcmeClient<UnoEuroDnsProvider>(Configuration.GetSection("DnsSettings").Get<UnoEuroDnsSettings>());
             } else if (Configuration.GetSection("DnsSettings").Get<AzureDnsSettings>().ResourceGroupName != null)
             {
-                serviceCollection.AddAcmeClient<AzureDnsProvider>(Configuration.GetSection("DnsSettings").Get<AzureDnsSettings>(), azureStorageConnectionString);
+                serviceCollection.AddAcmeClient<AzureDnsProvider>(Configuration.GetSection("DnsSettings").Get<AzureDnsSettings>());
             }
 
             serviceCollection.AddTransient<LetsencryptService>();

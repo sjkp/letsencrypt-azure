@@ -1,5 +1,6 @@
 ﻿using LetsEncrypt.Azure.Core;
 using LetsEncrypt.Azure.Core.V2;
+using LetsEncrypt.Azure.Core.V2.CertificateStores;
 using LetsEncrypt.Azure.Core.V2.DnsProviders;
 using LetsEncrypt.Azure.Core.V2.Models;
 using Microsoft.Extensions.Configuration;
@@ -76,7 +77,7 @@ namespace Letsencrypt.Azure.Core.Test
            
             var dnsProvider = TestHelper.UnoEuroDnsProvider;
 
-            var manager = new AcmeClient(dnsProvider, new DnsLookupService());
+            var manager = new AcmeClient(dnsProvider, new DnsLookupService(), new NullCertificateStore());
 
             var dnsRequest = new AcmeDnsRequest()
             {
@@ -108,7 +109,7 @@ namespace Letsencrypt.Azure.Core.Test
 
             var dnsProvider = new GoDaddyDnsProviderTest().DnsService;
 
-            var manager = new AcmeClient(dnsProvider, new DnsLookupService());
+            var manager = new AcmeClient(dnsProvider, new DnsLookupService(), new NullCertificateStore());
 
             var dnsRequest = new AcmeDnsRequest()
             {

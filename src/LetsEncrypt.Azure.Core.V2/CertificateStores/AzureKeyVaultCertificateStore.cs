@@ -33,25 +33,25 @@ namespace LetsEncrypt.Azure.Core.V2.CertificateStores
 
         public async Task<CertificateInfo> GetCertificate(string name, string password)
         {
+            // This retrieves the certificate with private key (without password), see https://blogs.technet.microsoft.com/kv/2016/09/26/get-started-with-azure-key-vault-certificates/
             var secretName = CleanName(name);
-            var secret = await GetSecret(name);
-            if (secret == null)
+            var cer = await this.GetSecret(secretName);
+            if (cer == null)
             {
                 return null;
             }
 
-            X509Certificate2 certificate = new X509Certificate2(Convert.FromBase64String(secret), password);
 
-            // This retrieves the secret/certificate without the private key
-            var certBundle = await this.keyVaultClient.GetCertificateAsync(this.vaultBaseUrl, secretName);
-            var cert = new X509Certificate2(certBundle.Cer, password);
+            var cert = new X509Certificate2(Convert.FromBase64String(cer), default(string), X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.Exportable);
+
+            
 
             return new CertificateInfo()
             {
-                Certificate = certificate,
+                Certificate = cert,
                 Name = name,
                 Password = password,
-                PfxCertificate = certBundle.Cer,
+                PfxCertificate = cert.Export(X509ContentType.Pfx, password)
             };
         }
 
@@ -60,7 +60,7 @@ namespace LetsEncrypt.Azure.Core.V2.CertificateStores
         /// <returns>An asynchronous result.</returns>
         public Task SaveCertificate(CertificateInfo certificate)
         {
-            return this.keyVaultClient.ImportCertificateAsync(this.vaultBaseUrl, CleanName(certificate.Name), certificate.PfxCertificate.ToString(), certificate.Password);
+            return this.keyVaultClient.ImportCertificateAsync(this.vaultBaseUrl, CleanName(certificate.Name), Convert.ToBase64String(certificate.PfxCertificate), certificate.Password);
         }
 
         private string CleanName(string name)

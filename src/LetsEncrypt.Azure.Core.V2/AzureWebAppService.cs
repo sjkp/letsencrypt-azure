@@ -84,9 +84,8 @@ namespace LetsEncrypt.Azure.Core.V2
 
         private static IAppServiceManager GetAppServiceManager(AzureWebAppSettings settings)
         {
-            return AppServiceManager.Authenticate(
-                           AzureHelper.GetAzureCredentials(settings.AzureServicePrincipal, settings.AzureSubscription),
-                           settings.AzureSubscription.SubscriptionId);
+            var restClient = AzureHelper.GetRestClient(settings.AzureServicePrincipal, settings.AzureSubscription);
+            return new AppServiceManager(restClient, settings.AzureSubscription.SubscriptionId, settings.AzureSubscription.Tenant);
         }
 
         public List<string> RemoveExpired(int removeXNumberOfDaysBeforeExpiration = 0)
