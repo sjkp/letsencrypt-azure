@@ -2,8 +2,16 @@
   "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "webSiteName": { "value": "sjkpletsencryptrunner" },
+    "webSiteName": { "value": "sjkpletsencryptrunner2" },
     "vaultName": { "value": "letsencryptrunner" },
-    "hostingPlanName": { "value": "letsencryptrunner" }
+    "hostingPlanName": { "value": "letsencryptrunner" },
+    "targetWebAppResourceGroupName": { "value": "LetsEncrypt.Wildcard.Function" },
+    "targetWebAppName": { "value": "sjkpletsencrypt" },
+    "dnsZoneName": { "value": "ai4bots.com" },
+    "dnsResourceGroupName": { "value": "dns" },
+    "csrOrganisation": { "value": "sjkp" },
+    "acmeRegistrationEmail": { "value": "mail@sjkp.dk" },
+    "certificateDomain": { "value": "*.ai4bots.com" },
+    "runFromPackage": { "value": "https://letsencryptazure.blob.core.windows.net/releases/letsencrypt-azure-runner-beta01.zip" }
   }
 }

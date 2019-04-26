@@ -38,8 +38,10 @@
     <None Include="Scripts\Import-Certificate.ps1" />
     <None Include="Scripts\KeyVault.pfx" />
     <None Include="Scripts\New-Certificate.ps1" />
+    <None Include="Templates\letsencrypt.functionapp.renewer.parameters.json" />
     <None Include="Templates\letsencrypt.azure.website.parameters.json" />
     <None Include="Templates\letsencrypt.azure.website.json" />
+    <None Include="Templates\letsencrypt.functionapp.renewer.json" />
   </ItemGroup>
   <Target Name="GetReferenceAssemblyPaths" />
 </Project>

@@ -87,6 +87,13 @@
       "metadata": {
         "description": "The domain name to request a certificate for e.g. *.yourdomain.com"
       }
+    },
+    "runFromPackage": {
+      "type": "string",
+      "defaultValue": "0",
+      "metadata": {
+        "description": "Set this to a url for a deployment package or 1 and dump a package in d:\\home\\data\\SitePackages, together with a packagename.txt file which contains the filename of the package in the folder"
+      }
     }
   },
   "variables": {
@@ -94,11 +101,13 @@
     "storageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
     "storageConnectionStringName": "blobStorageConnectionString",
     "storageAccountResourceId": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+    "appInsightsName": "[concat(uniquestring(resourceGroup().id), 'appinsight')]",
     "pfxPass": "pfxPassword",
     "Owner": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', '8e3af657-a8ff-443c-a75c-2fe8c4bcb635')]",
     "Contributor": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
     "Reader": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'acdd72a7-3385-48ef-bd42-f606fba81ae7')]",
-    "scope": "[concat(subscription().id, '/resourceGroups/', parameters('targetWebAppResourceGroupName'))]"
+    "scope": "[concat(subscription().id, '/resourceGroups/', parameters('targetWebAppResourceGroupName'))]",
+    "scopeDns": "[concat(subscription().id, '/resourceGroups/', parameters('dnsResourceGroupName'))]"
   },
   "resources": [
     {
@@ -117,18 +126,6 @@
           "name": "standard"
         },
         "accessPolicies": [
-          {
-            "tenantId": "[reference(concat('Microsoft.Web/sites/',  parameters('webSiteName'), '/providers/Microsoft.ManagedIdentity/Identities/default'), '2015-08-31-PREVIEW').tenantId]",
-            "objectId": "[reference(concat('Microsoft.Web/sites/',  parameters('webSiteName'), '/providers/Microsoft.ManagedIdentity/Identities/default'), '2015-08-31-PREVIEW').principalId]",
-            "permissions": {
-              "keys": [],
-              "secrets": [
-                "get"
-              ],
-              "certificates": [],
-              "storage": []
-            }
-          },
           {
             "tenantId": "[reference(concat('Microsoft.Web/sites/', parameters('webSiteName')), '2018-02-01', 'Full').identity.tenantId]",
             "objectId": "[reference(concat('Microsoft.Web/sites/', parameters('webSiteName')), '2018-02-01', 'Full').identity.principalId]",
@@ -215,7 +212,8 @@
           "type": "config",
           "apiVersion": "2015-08-01",
           "dependsOn": [
-            "[resourceId('Microsoft.Web/Sites/', parameters('webSiteName'))]"
+            "[resourceId('Microsoft.Web/Sites/', parameters('webSiteName'))]",
+            "[resourceId('Microsoft.Insights/components/', variables('appInsightsName'))]"
           ],
           "tags": {
             "displayName": "appSettings"
@@ -232,19 +230,21 @@
             "AzureAppService__ResourceGroupName": "[parameters('targetWebAppResourceGroupName')]",
             "AzureAppService__AzureServicePrincipal__UseManagendIdentity": "true",
             "AzureAppService__AzureSubscription__Tenant": "[subscription().tenantId]",
-            "AzureAppService__AzureSubscription__SubscriptionId": "[subscription().id]",
+            "AzureAppService__AzureSubscription__SubscriptionId": "[subscription().subscriptionId]",
             "AzureAppService__AzureSubscription__AzureRegion": "AzureGlobalCloud",
             "DnsSettings__ZoneName": "[parameters('dnsZoneName')]",
             "DnsSettings__ResourceGroupName": "[parameters('dnsResourceGroupName')]",
             "DnsSettings__AzureServicePrincipal__UseManagendIdentity": "true",
             "DnsSettings__AzureSubscription__Tenant": "[subscription().tenantId]",
-            "DnsSettings__AzureSubscription__SubscriptionId": "[subscription().id]",
+            "DnsSettings__AzureSubscription__SubscriptionId": "[subscription().subscriptionId]",
             "DnsSettings__AzureSubscription__AzureRegion": "AzureGlobalCloud",
             "AcmeDnsRequest__CsrInfo__Organization": "[parameters('csrOrganisation')]",
             "AcmeDnsRequest__RegistrationEmail": "[parameters('acmeRegistrationEmail')]",
             "AcmeDnsRequest__AcmeEnvironment__Name": "[parameters('acmeEnvironment')]",
             "AcmeDnsRequest__Host": "[parameters('certificateDomain')]",
-            "AcmeDnsRequest__PFXPassword": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', parameters('vaultName'), variables('pfxPass'))).secretUriWithVersion,  ')')]"
+            "AcmeDnsRequest__PFXPassword": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', parameters('vaultName'), variables('pfxPass'))).secretUriWithVersion,  ')')]",
+            "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(concat('microsoft.insights/components/', variables('appInsightsName'))).InstrumentationKey]",
+            "WEBSITE_RUN_FROM_PACKAGE": "[parameters('runFromPackage')]"
           }
         }
       ]
@@ -259,16 +259,82 @@
       }
     },
     {
-      "type": "Microsoft.Authorization/roleAssignments",
-      "apiVersion": "2017-05-01",
-      "name": "[parameters('roleNameGuid')]",
+      "apiVersion": "2014-04-01",
+      "name": "[variables('appInsightsName')]",
+      "type": "Microsoft.Insights/components",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "[concat('hidden-link:', resourceGroup().id, '/providers/Microsoft.Web/sites/', parameters('webSiteName'))]": "Resource",
+        "displayName": "AppInsightsComponent"
+      },
+      "properties": {
+        "applicationId": "[variables('appInsightsName')]"
+      }
+    },
+    {
+      "apiVersion": "2017-05-10",
+      "name": "nestedTemplate",
+      "condition": true,
+      "type": "Microsoft.Resources/deployments",
+      "resourceGroup": "[parameters('targetWebAppResourceGroupName')]",
+      "subscriptionId": "[subscription().subscriptionId]",
       "dependsOn": [
         "[resourceId('Microsoft.Web/sites/', parameters('webSiteName'))]"
       ],
       "properties": {
-        "roleDefinitionId": "[variables(parameters('builtInRoleType'))]",
-        "principalId": "[reference(concat('Microsoft.Web/sites/', parameters('webSiteName')), '2018-02-01', 'Full').identity.principalId]",
-        "scope": "[variables('scope')]"
+        "mode": "Incremental",
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "parameters": {},
+          "variables": {},
+          "resources": [
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2017-05-01",
+              "name": "[parameters('roleNameGuid')]",
+              "properties": {
+                "roleDefinitionId": "[variables(parameters('builtInRoleType'))]",
+                "principalId": "[reference(concat('Microsoft.Web/sites/', parameters('webSiteName')), '2018-02-01', 'Full').identity.principalId]",
+                "scope": "[variables('scope')]"
+              }
+            }
+          ]
+        },
+        "parameters": {}
+      }
+    },
+    {
+      "apiVersion": "2017-05-10",
+      "name": "nestedTemplateDns",
+      "condition": true,
+      "type": "Microsoft.Resources/deployments",
+      "resourceGroup": "[parameters('dnsResourceGroupName')]",
+      "subscriptionId": "[subscription().subscriptionId]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites/', parameters('webSiteName'))]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "parameters": {},
+          "variables": {},
+          "resources": [
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2017-05-01",
+              "name": "[parameters('roleNameGuid')]",
+              "properties": {
+                "roleDefinitionId": "[variables(parameters('builtInRoleType'))]",
+                "principalId": "[reference(concat('Microsoft.Web/sites/', parameters('webSiteName')), '2018-02-01', 'Full').identity.principalId]",
+                "scope": "[variables('scopeDns')]"
+              }
+            }
+          ]
+        },
+        "parameters": {}
       }
     }
   ],
