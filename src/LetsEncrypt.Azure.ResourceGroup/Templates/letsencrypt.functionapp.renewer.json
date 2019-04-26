@@ -5,7 +5,7 @@
     "hostingPlanName": {
       "type": "string",
       "minLength": 1
-    },    
+    },
     "webSiteName": {
       "type": "string"
     },
@@ -15,6 +15,78 @@
     "pfxPass": {
       "type": "string",
       "defaultValue": "[newGuid()]"
+    },
+    "builtInRoleType": {
+      "type": "string",
+      "allowedValues": [
+        "Owner",
+        "Contributor",
+        "Reader"
+      ],
+      "metadata": {
+        "description": "Built-in role to assign"
+      },
+      "defaultValue": "Contributor"
+    },
+    "roleNameGuid": {
+      "type": "string",
+      "metadata": {
+        "description": "A new GUID used to identify the role"
+      },
+      "defaultValue": "[newGuid()]"
+    },
+    "targetWebAppResourceGroupName": {
+      "type": "string",
+      "metadata": {
+        "description": "The resource group that contains the web app that should have the SSL cert assigned"
+      }
+    },
+    "targetWebAppName": {
+      "type": "string",
+      "metadata": {
+        "description": "the name of the web application that should have the SSL Cert assigned"
+      }
+    },
+    "dnsZoneName": {
+      "type": "string",
+      "metadata": {
+        "description": "The DNS zone name in azure, e.g. yourwebsite.com"
+      }
+    },
+    "dnsResourceGroupName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the resource group that contains the dns service"
+      }
+    },
+    "csrOrganisation": {
+      "type": "string",
+      "metadata": {
+        "description": "name of the organisation that owns the domain"
+      }
+    },
+    "acmeRegistrationEmail": {
+      "type": "string",
+      "metadata": {
+        "description": "email used to register with lets encrypt, you will recieve certificate expiry notifications on this email"
+      }
+    },
+    "acmeEnvironment": {
+      "type": "string",
+      "allowedValues": [
+        "production",
+        "staging"
+      ],
+      "metadata": {
+        "description": "The environment to request certificates from"
+      },
+      "defaultValue": "staging"
+    },
+    "certificateDomain": {
+      "type": "string",
+      "metadata": {
+        "description": "The domain name to request a certificate for e.g. *.yourdomain.com"
+      }
     }
   },
   "variables": {
@@ -22,7 +94,11 @@
     "storageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
     "storageConnectionStringName": "blobStorageConnectionString",
     "storageAccountResourceId": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
-    "pfxPass": "pfxPassword"
+    "pfxPass": "pfxPassword",
+    "Owner": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', '8e3af657-a8ff-443c-a75c-2fe8c4bcb635')]",
+    "Contributor": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
+    "Reader": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'acdd72a7-3385-48ef-bd42-f606fba81ae7')]",
+    "scope": "[concat(subscription().id, '/resourceGroups/', parameters('targetWebAppResourceGroupName'))]"
   },
   "resources": [
     {
@@ -93,7 +169,7 @@
           "name": "[variables('pfxPass')]",
           "apiVersion": "2018-02-14",
           "dependsOn": [
-            "[resourceId('Microsoft.KeyVault/vaults/', parameters('vaultName'))]",
+            "[resourceId('Microsoft.KeyVault/vaults/', parameters('vaultName'))]"
           ],
           "properties": {
             "value": "[parameters('pfxPass')]"
@@ -153,7 +229,7 @@
             "FUNCTIONS_WORKER_RUNTIME": "dotnet",
             "Vault": "[parameters('vaultName')]",
             "AzureAppService__WebAppName": "[parameters('targetWebAppName')]",
-            "AzureAppService__ResourceGroupName": "[parameters('targetResourceGroupName')]",
+            "AzureAppService__ResourceGroupName": "[parameters('targetWebAppResourceGroupName')]",
             "AzureAppService__AzureServicePrincipal__UseManagendIdentity": "true",
             "AzureAppService__AzureSubscription__Tenant": "[subscription().tenantId]",
             "AzureAppService__AzureSubscription__SubscriptionId": "[subscription().id]",
@@ -167,7 +243,7 @@
             "AcmeDnsRequest__CsrInfo__Organization": "[parameters('csrOrganisation')]",
             "AcmeDnsRequest__RegistrationEmail": "[parameters('acmeRegistrationEmail')]",
             "AcmeDnsRequest__AcmeEnvironment__Name": "[parameters('acmeEnvironment')]",
-            "AcmeDnsRequest__Host": "[parameters('acmeHost')]",
+            "AcmeDnsRequest__Host": "[parameters('certificateDomain')]",
             "AcmeDnsRequest__PFXPassword": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', parameters('vaultName'), variables('pfxPass'))).secretUriWithVersion,  ')')]"
           }
         }
@@ -180,6 +256,19 @@
       "location": "[resourceGroup().location]",
       "properties": {
         "accountType": "Standard_LRS"
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2017-05-01",
+      "name": "[parameters('roleNameGuid')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites/', parameters('webSiteName'))]"
+      ],
+      "properties": {
+        "roleDefinitionId": "[variables(parameters('builtInRoleType'))]",
+        "principalId": "[reference(concat('Microsoft.Web/sites/', parameters('webSiteName')), '2018-02-01', 'Full').identity.principalId]",
+        "scope": "[variables('scope')]"
       }
     }
   ],
