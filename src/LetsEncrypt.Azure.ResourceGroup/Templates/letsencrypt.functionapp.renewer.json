@@ -35,6 +35,13 @@
       },
       "defaultValue": "[newGuid()]"
     },
+    "roleNameDnsGuid": {
+      "type": "string",
+      "metadata": {
+        "description": "A new GUID used to identify the role"
+      },
+      "defaultValue": "[newGuid()]"
+    },
     "targetWebAppResourceGroupName": {
       "type": "string",
       "metadata": {
@@ -325,7 +332,7 @@
             {
               "type": "Microsoft.Authorization/roleAssignments",
               "apiVersion": "2017-05-01",
-              "name": "[concat(parameters('roleNameGuid'),'dns')]",
+              "name": "[parameters('roleNameDnsGuid')]",
               "properties": {
                 "roleDefinitionId": "[variables(parameters('builtInRoleType'))]",
                 "principalId": "[reference(concat('Microsoft.Web/sites/', parameters('webSiteName')), '2018-02-01', 'Full').identity.principalId]",
