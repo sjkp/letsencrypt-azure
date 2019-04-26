@@ -325,7 +325,7 @@
             {
               "type": "Microsoft.Authorization/roleAssignments",
               "apiVersion": "2017-05-01",
-              "name": "[parameters('roleNameGuid')]",
+              "name": "[concat(parameters('roleNameGuid'),'dns')]",
               "properties": {
                 "roleDefinitionId": "[variables(parameters('builtInRoleType'))]",
                 "principalId": "[reference(concat('Microsoft.Web/sites/', parameters('webSiteName')), '2018-02-01', 'Full').identity.principalId]",
