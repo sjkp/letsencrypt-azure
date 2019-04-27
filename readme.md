@@ -1,6 +1,6 @@
 # Let's Encrypt Azure
 
-*This project is under development and not yet released* 
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fsjkp%2Fletsencrypt-azure%2Fmaster%2Fsrc%2FLetsEncrypt.Azure.ResourceGroup%2FTemplates%2Fletsencrypt.functionapp.renewer.json" target="_blank"><img src="http://azuredeploy.net/deploybutton.png"/></a>
 
 # What is Let's Encrypt Azure
 
