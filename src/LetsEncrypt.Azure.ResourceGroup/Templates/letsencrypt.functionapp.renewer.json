@@ -4,7 +4,7 @@
   "parameters": {
     "functionAppName": {
       "type": "string",
-      "defaultValue": "[concat('letsencrypt-runner-', uniqueString(resourceGroup().id))]",
+      "defaultValue": "[take(concat('letsencrypt-runner-', uniqueString(resourceGroup().id)),60)]",
       "metadata": {
         "description": "Globally unique name for the Let's Encrypt Renewer function app."
       }
@@ -12,14 +12,14 @@
     "hostingPlanName": {
       "type": "string",
       "minLength": 1,
-      "defaultValue": "[concat('letsencrypt-runner', uniqueString(resourceGroup().id))]",
+      "defaultValue": "[take(concat('letsencrypt-runner', uniqueString(resourceGroup().id)),60)]",
       "metadata": {
         "description": "Name used for the hosting plan"
       }
     },
     "vaultName": {
       "type": "string",
-      "defaultValue": "[concat('letsencrypt-runner-', uniqueString(resourceGroup().id))]",
+      "defaultValue": "[take(concat('letsencrypt-runnerr-', uniqueString(resourceGroup().id)),24)]",
       "metadata": {
         "description": "Globally unique name for the Key Vault used to store the certificate and secrets used by the Let's Encrypt Renewer function app"
       }
