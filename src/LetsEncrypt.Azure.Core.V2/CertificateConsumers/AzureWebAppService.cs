@@ -7,10 +7,11 @@ using Microsoft.Azure.Management.AppService.Fluent.Models;
 using LetsEncrypt.Azure.Core.V2.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using LetsEncrypt.Azure.Core.V2.CertificateConsumers;
 
 namespace LetsEncrypt.Azure.Core.V2
 {
-    public class AzureWebAppService
+    public class AzureWebAppService : ICertificateConsumer
     {
         private readonly AzureWebAppSettings[] settings;
         private readonly ILogger<AzureWebAppService> logger;
@@ -88,26 +89,30 @@ namespace LetsEncrypt.Azure.Core.V2
             return new AppServiceManager(restClient, settings.AzureSubscription.SubscriptionId, settings.AzureSubscription.Tenant);
         }
 
-        public List<string> RemoveExpired(int removeXNumberOfDaysBeforeExpiration = 0)
+        public async Task<List<string>> CleanUp()
+        {
+            return await this.CleanUp(0);
+        }
+        public async Task<List<string>> CleanUp(int removeXNumberOfDaysBeforeExpiration = 0)
         {
             var removedCerts = new List<string>();
             foreach (var setting in this.settings)
             {
                 var appServiceManager = GetAppServiceManager(setting);
-                var certs = appServiceManager.AppServiceCertificates.ListByResourceGroup(setting.ServicePlanResourceGroupName ?? setting.ResourceGroupName);
+                var certs = await appServiceManager.AppServiceCertificates.ListByResourceGroupAsync(setting.ServicePlanResourceGroupName ?? setting.ResourceGroupName);
 
                 var tobeRemoved = certs.Where(s => s.ExpirationDate < DateTime.UtcNow.AddDays(removeXNumberOfDaysBeforeExpiration) && (s.Issuer.Contains("Let's Encrypt") || s.Issuer.Contains("Fake LE"))).ToList();
 
-                tobeRemoved.ForEach(s => RemoveCertificate(appServiceManager, s, setting));
+                tobeRemoved.ForEach(async s => await RemoveCertificate(appServiceManager, s, setting));
 
                 removedCerts.AddRange(tobeRemoved.Select(s => s.Thumbprint).ToList());
             }
             return removedCerts;
         }
 
-        private void RemoveCertificate(IAppServiceManager webSiteClient, IAppServiceCertificate s, AzureWebAppSettings setting)
+        private async Task RemoveCertificate(IAppServiceManager webSiteClient, IAppServiceCertificate s, AzureWebAppSettings setting)
         {
-            webSiteClient.AppServiceCertificates.DeleteByResourceGroup(setting.ServicePlanResourceGroupName ?? setting.ResourceGroupName, s.Name);
+            await webSiteClient.AppServiceCertificates.DeleteByResourceGroupAsync(setting.ServicePlanResourceGroupName ?? setting.ResourceGroupName, s.Name);
         }
 
 
