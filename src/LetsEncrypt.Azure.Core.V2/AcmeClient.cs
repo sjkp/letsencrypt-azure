@@ -70,7 +70,7 @@ namespace LetsEncrypt.Azure.Core.V2
 
             logger.LogInformation("Finished validating dns challenge token, response was {ChallengeStatus} more info at {ChallengeStatusUrl}", chalResp.Status, chalResp.Url);
 
-            var privateKey = KeyFactory.NewKey(KeyAlgorithm.RS256);
+            var privateKey = await GetOrCreateKey(acmeConfig.AcmeEnvironment.BaseUri, acmeConfig.Host);
             var cert = await order.Generate(new Certes.CsrInfo
             {
                 CountryName = acmeConfig.CsrInfo.CountryName,
@@ -99,6 +99,20 @@ namespace LetsEncrypt.Azure.Core.V2
                 },
                 Host = acmeConfig.Host
             };
+        }
+
+        private async Task<IKey> GetOrCreateKey(Uri acmeDirectory, string host)
+        {
+            string secretName = $"privatekey{host}--{acmeDirectory.Host}";
+            var key = await this.certificateStore.GetSecret(secretName);
+            if (string.IsNullOrEmpty(key))
+            {
+                var privatekey = KeyFactory.NewKey(KeyAlgorithm.RS256);
+                await this.certificateStore.SaveSecret(secret:, privatekey.ToPem());
+                return privatekey;
+            }
+
+            return KeyFactory.FromPem(key);
         }
 
         private async Task<AcmeContext> GetOrCreateAcmeContext(Uri acmeDirectoryUri, string email)
