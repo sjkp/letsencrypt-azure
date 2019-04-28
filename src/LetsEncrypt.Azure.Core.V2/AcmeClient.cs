@@ -108,7 +108,7 @@ namespace LetsEncrypt.Azure.Core.V2
             if (string.IsNullOrEmpty(key))
             {
                 var privatekey = KeyFactory.NewKey(KeyAlgorithm.RS256);
-                await this.certificateStore.SaveSecret(secret:, privatekey.ToPem());
+                await this.certificateStore.SaveSecret(secretName, privatekey.ToPem());
                 return privatekey;
             }
 
