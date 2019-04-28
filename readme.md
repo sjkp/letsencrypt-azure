@@ -1,4 +1,6 @@
 # Let's Encrypt Azure
+[![Build status](https://dev.azure.com/letsencrypt/letsencrypt/_apis/build/status/LetsEncrypt-Azure-CI)](https://dev.azure.com/letsencrypt/letsencrypt/_build/latest?definitionId=4)
+
 The easiest and most robust method for deploying Let's Encrypt Wild Card Certificate to Azure Web Apps. 
 
 # Getting Started
