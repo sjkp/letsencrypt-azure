@@ -112,7 +112,7 @@
     },
     "runFromPackage": {
       "type": "string",
-      "defaultValue": "https://letsencryptazure.blob.core.windows.net/releases/letsencrypt-azure-runner-beta01.zip",
+      "defaultValue": "https://letsencryptazure.blob.core.windows.net/releases/126.zip",
       "metadata": {
         "description": "Set this to a url for a deployment package or 0 for not deploying anything to the Azure Function. The Default value deploy the latest version of the Azure Function Renewer code"
       }
