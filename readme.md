@@ -1,18 +1,54 @@
 # Let's Encrypt Azure
+The easiest and most robust method for deploying Let's Encrypt Wild Card Certificate to Azure Web Apps. 
 
+# Getting Started
+## Azure DNS + Azure Web  
+Deployment template for setting up Let's Encrypt wild card certificate for Azure Web App (hosting plan and web app must be colocated in same resource group). Hostname must already be configured on the Web App and the DNS must be setup in Azure. 
 <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fsjkp%2Fletsencrypt-azure%2Fmaster%2Fsrc%2FLetsEncrypt.Azure.ResourceGroup%2FTemplates%2Fletsencrypt.functionapp.renewer.json" target="_blank"><img src="http://azuredeploy.net/deploybutton.png"/></a>
 
 # What is Let's Encrypt Azure
 
-Let's Encrypt Azure is my second attempt to bring Let's Encrypt certificates to Azure. My first attempt letsencrypt-siteextension was merely a prototype, that I refined a little and 
-shared with other people so they could also benefit from getting Let's Encrypt certificates for their Azure Web Apps. 
+Let's Encrypt Azure is my second attempt to bring support for Let's Encrypt certificates on Azure. It is the spiritual successor to the Let's Encrypt Site-Extension, although they for the momemt support different usage scenarios. 
 
-While the original project worked, it had a few shortcomings. Let's Encrypt Azure is an attempt to fix those while using an architecture 
-that will allow Let's Encrypt Azure to be used for other services in Azure, not just for Azure Web Apps. 
+| Feature | Let's Encrypt Azure |	Let's Encrypt Site-Extension
+|-----| ---- | ----
+| Key Vault Support | X | Not supported
+| Wild card SSL certificate support / DNS challenge | X | Not supported 
+| Specific domain SSL certificate support / HTTP challenge| Planned | X 
+| Managed Service Identity Authenticaiton | X | Not supported
+| Azure Web Apps | X | X 
+| Azure CDN | Planned | Not supported
+| Azure Application Gateway | Planned | Not supported
+| Azure Front Door | Planned | Not supported
+| Web App behind Traffic Manager supported | X | X 
 
-Some of the shortcommings that Let's Encrypt Azure is trying to fix are:
 
-* Easier installation (letsencrypt-siteextension was to many a configuration nightmare, this time around I'm going to aim for the default scenario, setting up letsencrypt certificates on a single azure web app, to be a one-click process, with a more validation)
-* Better renewal (The renewal process of the original extension was handled in a Web Job running inside the web app, while it did work, it had some serious flaws, e.g. you would not get notifications when it failed, depending on how you deployed you web app, you could accidentially delete the job). 
-* Better support for larger environments (My original extension was really only thought through for the single web app scenario, this time around I will try to prepare my solution for multi-region deploys with traffic manager, and people using web slots)
-* Better security (instead of storing certificates inside the Azure Web app, this time around we are going to leverage Azure Key Vault)
+# How it works
+Let's Encrypt Azure, works by deploying a resouce group with an Azure Function that runs code that talks to Let's Encrypt to request and renew the certificate, using the DNS challenge. Since DNS challenge is used the Function app needs access to the DNS provider used for the domain. All secrets required for the process are stored in Azure Key Vault. Once a certificate is generated it can be stored a various certificate storage locations and consumed by different certificate consumers. It used application insights for storing logs. 
+
+![Overview of infrastructure](media/letsencrypt-azure-overview.png)
+
+## Certificate Storage
+The recommend certificate storage location is Azure Key Vault, but is is possible to configure the Azure Function to store the certificate in Azure Blob Storage as well. 
+
+## Certificate Consumers
+Certificate consumers are the Azure Service that is going to consume the certificate. Right now the only supported consumer is Azure Web Apps, but more are planned for the future. 
+
+* Azure Web Apps/Azure Functions
+* Azure Front Door (not released)
+* Azure Application Gateway (not released)
+* Azure CDN (not released)
+
+## DNS providers
+DNS providers are where the DNS for the domain name is configured. Currently the following DNS providers are supported
+
+* Azure DNS
+* GoDaddy DNS
+* UnoEuro DNS
+
+
+
+
+
+
+

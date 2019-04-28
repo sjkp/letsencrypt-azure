@@ -2,8 +2,8 @@
   "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "webSiteName": { "value": "sjkpletsencryptrunner2" },
-    "vaultName": { "value": "letsencryptrunner" },
+    "functionAppName": { "value": "azlerunner2" },
+    "vaultName": { "value": "azlerunner2" },
     "hostingPlanName": { "value": "letsencryptrunner" },
     "targetWebAppResourceGroupName": { "value": "LetsEncrypt.Wildcard.Function" },
     "targetWebAppName": { "value": "sjkpletsencrypt" },

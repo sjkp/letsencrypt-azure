@@ -2,18 +2,61 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
+    "functionAppName": {
+      "type": "string",
+      "metadata": {
+        "description": "Globally unique name for the Let's Encrypt Renewer function app."
+      }
+    },
     "hostingPlanName": {
       "type": "string",
-      "minLength": 1
-    },
-    "webSiteName": {
-      "type": "string"
+      "minLength": 1,
+      "metadata": {
+        "description": "Name used for the hosting plan"
+      }
     },
     "vaultName": {
-      "type": "string"
-    },
-    "pfxPass": {
       "type": "string",
+      "metadata": {
+        "description": "Globally unique name for the Key Vault used to store the certificate and secrets used by the Let's Encrypt Renewer function app"
+      }
+    },    
+    "targetWebAppResourceGroupName": {
+      "type": "string",
+      "metadata": {
+        "description": "The resource group that contains the web app that should have the SSL cert assigned"
+      }
+    },
+    "targetWebAppName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the web application that should have the SSL Cert assigned"
+      }
+    },
+    "dnsZoneName": {
+      "type": "string",
+      "metadata": {
+        "description": "The DNS zone name in azure, e.g. yourwebsite.com"
+      }
+    },
+    "dnsResourceGroupName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the resource group that contains the Azure DNS service (must already exists)"
+      }
+    },    
+    "roleNameGuid": {
+      "type": "string",
+      "metadata": {
+        "description": "A new GUID used to identify the role assignment made for the Service Principal added to the Web App Resource Group"
+      },
+      "defaultValue": "[newGuid()]"
+    },
+    "roleNameDnsGuid": {
+      "type": "string",
+      "metadata": {
+        "description": "A new GUID used to identify the role assignment that made for the Service Principal added to the DNS resource group"
+      },
       "defaultValue": "[newGuid()]"
     },
     "builtInRoleType": {
@@ -28,54 +71,16 @@
       },
       "defaultValue": "Contributor"
     },
-    "roleNameGuid": {
-      "type": "string",
-      "metadata": {
-        "description": "A new GUID used to identify the role"
-      },
-      "defaultValue": "[newGuid()]"
-    },
-    "roleNameDnsGuid": {
-      "type": "string",
-      "metadata": {
-        "description": "A new GUID used to identify the role"
-      },
-      "defaultValue": "[newGuid()]"
-    },
-    "targetWebAppResourceGroupName": {
-      "type": "string",
-      "metadata": {
-        "description": "The resource group that contains the web app that should have the SSL cert assigned"
-      }
-    },
-    "targetWebAppName": {
-      "type": "string",
-      "metadata": {
-        "description": "the name of the web application that should have the SSL Cert assigned"
-      }
-    },
-    "dnsZoneName": {
-      "type": "string",
-      "metadata": {
-        "description": "The DNS zone name in azure, e.g. yourwebsite.com"
-      }
-    },
-    "dnsResourceGroupName": {
-      "type": "string",
-      "metadata": {
-        "description": "The name of the resource group that contains the dns service"
-      }
-    },
     "csrOrganisation": {
       "type": "string",
       "metadata": {
-        "description": "name of the organisation that owns the domain"
+        "description": "Name of the organisation that owns the domain, will be present in the Certificate"
       }
     },
     "acmeRegistrationEmail": {
       "type": "string",
       "metadata": {
-        "description": "email used to register with lets encrypt, you will recieve certificate expiry notifications on this email"
+        "description": "Email used to register with Let's Encrypt, you will recieve certificate expiry notifications on this email"
       }
     },
     "acmeEnvironment": {
@@ -95,11 +100,18 @@
         "description": "The domain name to request a certificate for e.g. *.yourdomain.com"
       }
     },
+    "pfxPass": {
+      "type": "string",
+      "defaultValue": "[newGuid()]",
+      "metadata": {
+        "description": "The password used to protect the certificate (only used internally)"
+      }
+    },
     "runFromPackage": {
       "type": "string",
-      "defaultValue": "0",
+      "defaultValue": "https://letsencryptazure.blob.core.windows.net/releases/letsencrypt-azure-runner-beta01.zip",
       "metadata": {
-        "description": "Set this to a url for a deployment package or 1 and dump a package in d:\\home\\data\\SitePackages, together with a packagename.txt file which contains the filename of the package in the folder"
+        "description": "Set this to a url for a deployment package or 0 for not deploying anything to the Azure Function"
       }
     }
   },
@@ -124,7 +136,7 @@
       "location": "[resourceGroup().location]",
       "tags": {},
       "dependsOn": [
-        "[resourceId('Microsoft.Web/sites/', parameters('webSiteName'))]"
+        "[resourceId('Microsoft.Web/sites/', parameters('functionAppName'))]"
       ],
       "properties": {
         "tenantId": "[subscription().tenantId]",
@@ -134,8 +146,8 @@
         },
         "accessPolicies": [
           {
-            "tenantId": "[reference(concat('Microsoft.Web/sites/', parameters('webSiteName')), '2018-02-01', 'Full').identity.tenantId]",
-            "objectId": "[reference(concat('Microsoft.Web/sites/', parameters('webSiteName')), '2018-02-01', 'Full').identity.principalId]",
+            "tenantId": "[reference(concat('Microsoft.Web/sites/', parameters('functionAppName')), '2018-02-01', 'Full').identity.tenantId]",
+            "objectId": "[reference(concat('Microsoft.Web/sites/', parameters('functionAppName')), '2018-02-01', 'Full').identity.principalId]",
             "permissions": {
               "keys": [],
               "secrets": [
@@ -194,7 +206,7 @@
     },
     {
       "apiVersion": "2015-08-01",
-      "name": "[parameters('webSiteName')]",
+      "name": "[parameters('functionAppName')]",
       "type": "Microsoft.Web/sites",
       "kind": "functionapp",
       "location": "[resourceGroup().location]",
@@ -210,7 +222,7 @@
         "displayName": "Website"
       },
       "properties": {
-        "name": "[parameters('webSiteName')]",
+        "name": "[parameters('functionAppName')]",
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('hostingPlanName'))]"
       },
       "resources": [
@@ -219,7 +231,7 @@
           "type": "config",
           "apiVersion": "2015-08-01",
           "dependsOn": [
-            "[resourceId('Microsoft.Web/Sites/', parameters('webSiteName'))]",
+            "[resourceId('Microsoft.Web/Sites/', parameters('functionAppName'))]",
             "[resourceId('Microsoft.Insights/components/', variables('appInsightsName'))]"
           ],
           "tags": {
@@ -229,7 +241,7 @@
             "AzureWebJobsDashboard": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', parameters('vaultName'), variables('storageConnectionStringName'))).secretUriWithVersion,  ')')]",
             "AzureWebJobsStorage": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', parameters('vaultName'), variables('storageConnectionStringName'))).secretUriWithVersion,  ')')]",
             "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', parameters('vaultName'), variables('storageConnectionStringName'))).secretUriWithVersion,  ')')]",
-            "WEBSITE_CONTENTSHARE": "[toLower(parameters('webSiteName'))]",
+            "WEBSITE_CONTENTSHARE": "[toLower(parameters('functionAppName'))]",
             "FUNCTIONS_EXTENSION_VERSION": "~2",
             "FUNCTIONS_WORKER_RUNTIME": "dotnet",
             "Vault": "[parameters('vaultName')]",
@@ -271,7 +283,7 @@
       "type": "Microsoft.Insights/components",
       "location": "[resourceGroup().location]",
       "tags": {
-        "[concat('hidden-link:', resourceGroup().id, '/providers/Microsoft.Web/sites/', parameters('webSiteName'))]": "Resource",
+        "[concat('hidden-link:', resourceGroup().id, '/providers/Microsoft.Web/sites/', parameters('functionAppName'))]": "Resource",
         "displayName": "AppInsightsComponent"
       },
       "properties": {
@@ -286,7 +298,7 @@
       "resourceGroup": "[parameters('targetWebAppResourceGroupName')]",
       "subscriptionId": "[subscription().subscriptionId]",
       "dependsOn": [
-        "[resourceId('Microsoft.Web/sites/', parameters('webSiteName'))]"
+        "[resourceId('Microsoft.Web/sites/', parameters('functionAppName'))]"
       ],
       "properties": {
         "mode": "Incremental",
@@ -302,7 +314,7 @@
               "name": "[parameters('roleNameGuid')]",
               "properties": {
                 "roleDefinitionId": "[variables(parameters('builtInRoleType'))]",
-                "principalId": "[reference(concat('Microsoft.Web/sites/', parameters('webSiteName')), '2018-02-01', 'Full').identity.principalId]",
+                "principalId": "[reference(concat('Microsoft.Web/sites/', parameters('functionAppName')), '2018-02-01', 'Full').identity.principalId]",
                 "scope": "[variables('scope')]"
               }
             }
@@ -319,7 +331,7 @@
       "resourceGroup": "[parameters('dnsResourceGroupName')]",
       "subscriptionId": "[subscription().subscriptionId]",
       "dependsOn": [
-        "[resourceId('Microsoft.Web/sites/', parameters('webSiteName'))]"
+        "[resourceId('Microsoft.Web/sites/', parameters('functionAppName'))]"
       ],
       "properties": {
         "mode": "Incremental",
@@ -335,7 +347,7 @@
               "name": "[parameters('roleNameDnsGuid')]",
               "properties": {
                 "roleDefinitionId": "[variables(parameters('builtInRoleType'))]",
-                "principalId": "[reference(concat('Microsoft.Web/sites/', parameters('webSiteName')), '2018-02-01', 'Full').identity.principalId]",
+                "principalId": "[reference(concat('Microsoft.Web/sites/', parameters('functionAppName')), '2018-02-01', 'Full').identity.principalId]",
                 "scope": "[variables('scopeDns')]"
               }
             }
