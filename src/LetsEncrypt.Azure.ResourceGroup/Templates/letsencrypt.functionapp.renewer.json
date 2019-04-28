@@ -4,6 +4,7 @@
   "parameters": {
     "functionAppName": {
       "type": "string",
+      "defaultValue": "[concat('letsencrypt-runner-', uniqueString(resourceGroup().id))]",
       "metadata": {
         "description": "Globally unique name for the Let's Encrypt Renewer function app."
       }
@@ -11,16 +12,18 @@
     "hostingPlanName": {
       "type": "string",
       "minLength": 1,
+      "defaultValue": "[concat('letsencrypt-runner', uniqueString(resourceGroup().id))]",
       "metadata": {
         "description": "Name used for the hosting plan"
       }
     },
     "vaultName": {
       "type": "string",
+      "defaultValue": "[concat('letsencrypt-runner-', uniqueString(resourceGroup().id))]",
       "metadata": {
         "description": "Globally unique name for the Key Vault used to store the certificate and secrets used by the Let's Encrypt Renewer function app"
       }
-    },    
+    },
     "targetWebAppResourceGroupName": {
       "type": "string",
       "metadata": {
@@ -44,7 +47,7 @@
       "metadata": {
         "description": "The name of the resource group that contains the Azure DNS service (must already exists)"
       }
-    },    
+    },
     "roleNameGuid": {
       "type": "string",
       "metadata": {
@@ -111,7 +114,14 @@
       "type": "string",
       "defaultValue": "https://letsencryptazure.blob.core.windows.net/releases/letsencrypt-azure-runner-beta01.zip",
       "metadata": {
-        "description": "Set this to a url for a deployment package or 0 for not deploying anything to the Azure Function"
+        "description": "Set this to a url for a deployment package or 0 for not deploying anything to the Azure Function. The Default value deploy the latest version of the Azure Function Renewer code"
+      }
+    },
+    "certRenewSchedule": {
+      "type": "string",
+      "defaultValue": "0 0 3 * * *",
+      "metadata": {
+        "description": "Cron expression for when the certificate renewal job should run see examples here: https://github.com/atifaziz/NCrontab/wiki/Crontab-Expression. Defaults to run every day at 03.00 UTC"
       }
     }
   },
@@ -263,7 +273,8 @@
             "AcmeDnsRequest__Host": "[parameters('certificateDomain')]",
             "AcmeDnsRequest__PFXPassword": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', parameters('vaultName'), variables('pfxPass'))).secretUriWithVersion,  ')')]",
             "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(concat('microsoft.insights/components/', variables('appInsightsName'))).InstrumentationKey]",
-            "WEBSITE_RUN_FROM_PACKAGE": "[parameters('runFromPackage')]"
+            "WEBSITE_RUN_FROM_PACKAGE": "[parameters('runFromPackage')]",
+            "CertRenewSchedule": "[parameters('certRenewSchedule')]"
           }
         }
       ]
