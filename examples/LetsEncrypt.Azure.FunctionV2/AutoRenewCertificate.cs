@@ -9,7 +9,7 @@ namespace LetsEncrypt.Azure.FunctionV2
     public static class AutoRenewCertificate
     {
         [FunctionName("AutoRenewCertificate")]
-        public static async Task Run([TimerTrigger("24:00:00", RunOnStartup = true)]TimerInfo myTimer, ILogger log)
+        public static async Task Run([TimerTrigger("%CertRenewSchedule%", RunOnStartup = false)]TimerInfo myTimer, ILogger log)
         {
             log.LogInformation($"Renewing certificate at: {DateTime.Now}");
 

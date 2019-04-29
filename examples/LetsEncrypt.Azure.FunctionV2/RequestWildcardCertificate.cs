@@ -14,6 +14,7 @@ using LetsEncrypt.Azure.Core.V2.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Azure.KeyVault;
+using System.Web.Http;
 
 namespace LetsEncrypt.Azure.FunctionV2
 {
@@ -31,8 +32,8 @@ namespace LetsEncrypt.Azure.FunctionV2
                 return new OkResult();
             } catch(Exception ex)
             {
-
-                return new ObjectResult(ex.ToString());
+                log.LogError(ex.ToString());
+                return new ExceptionResult(ex, true);
                 
             }
         }

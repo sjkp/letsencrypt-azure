@@ -1,4 +1,5 @@
-﻿using LetsEncrypt.Azure.Core.V2.CertificateStores;
+﻿using LetsEncrypt.Azure.Core.V2.CertificateConsumers;
+using LetsEncrypt.Azure.Core.V2.CertificateStores;
 using LetsEncrypt.Azure.Core.V2.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -11,14 +12,15 @@ namespace LetsEncrypt.Azure.Core.V2
     {
         private readonly AcmeClient acmeClient;
         private readonly ICertificateStore certificateStore;
+        private readonly ICertificateConsumer certificateConsumer;
         private readonly AzureWebAppService azureWebAppService;
         private readonly ILogger<LetsencryptService> logger;
 
-        public LetsencryptService(AcmeClient acmeClient, ICertificateStore certificateStore, AzureWebAppService azureWebAppService, ILogger<LetsencryptService> logger = null)
+        public LetsencryptService(AcmeClient acmeClient, ICertificateStore certificateStore, ICertificateConsumer certificateConsumer, ILogger<LetsencryptService> logger = null)
         {
             this.acmeClient = acmeClient;
             this.certificateStore = certificateStore;
-            this.azureWebAppService = azureWebAppService;
+            this.certificateConsumer = certificateConsumer;
             this.logger = logger ?? NullLogger<LetsencryptService>.Instance;
         }
         public async Task Run(AcmeDnsRequest acmeDnsRequest, int renewXNumberOfDaysBeforeExpiration)
@@ -45,10 +47,10 @@ namespace LetsEncrypt.Azure.Core.V2
                         Host = acmeDnsRequest.Host
                     };
                 }
-                await azureWebAppService.Install(model);
+                await certificateConsumer.Install(model);
 
                 logger.LogInformation("Removing expired certificates");
-                var expired = azureWebAppService.RemoveExpired();
+                var expired = await certificateConsumer.CleanUp();
                 logger.LogInformation("The following certificates was removed {Thumbprints}", string.Join(", ", expired.ToArray()));
                 
             }

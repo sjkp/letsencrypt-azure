@@ -1,10 +1,9 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Description>Library for easy retrieval of Let's Encrypt wildcard certificates using version 2 api. Support easy install to Azure Web Apps and storage in Azure Key Vault or Blob Storage.</Description>
-    <Version>1.0.0-beta01</Version>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Description>Library for easy retrieval of Let's Encrypt wildcard certificates using version 2 api. Support easy install to Azure Web Apps and storage in Azure Key Vault or Blob Storage.</Description>   
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>

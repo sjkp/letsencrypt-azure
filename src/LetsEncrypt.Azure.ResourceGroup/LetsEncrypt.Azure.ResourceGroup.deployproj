@@ -32,15 +32,11 @@
       <Visible>False</Visible>
     </None>
     <Content Include="Deploy-AzureResourceGroup.ps1" />
-    <Content Include="Templates\letsencrypt.azure.core.json" />
-    <Content Include="Templates\letsencrypt.azure.core.parameters.json" />
     <None Include="Scripts\Create-CoreInfrastructure.ps1" />
     <None Include="Scripts\Import-Certificate.ps1" />
     <None Include="Scripts\KeyVault.pfx" />
     <None Include="Scripts\New-Certificate.ps1" />
     <None Include="Templates\letsencrypt.functionapp.renewer.parameters.json" />
-    <None Include="Templates\letsencrypt.azure.website.parameters.json" />
-    <None Include="Templates\letsencrypt.azure.website.json" />
     <None Include="Templates\letsencrypt.functionapp.renewer.json" />
   </ItemGroup>
   <Target Name="GetReferenceAssemblyPaths" />

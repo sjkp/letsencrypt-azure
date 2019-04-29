@@ -1,4 +1,5 @@
-﻿using LetsEncrypt.Azure.Core.V2.CertificateStores;
+﻿using LetsEncrypt.Azure.Core.V2.CertificateConsumers;
+using LetsEncrypt.Azure.Core.V2.CertificateStores;
 using LetsEncrypt.Azure.Core.V2.DnsProviders;
 using LetsEncrypt.Azure.Core.V2.Models;
 using Microsoft.Azure.KeyVault;
@@ -64,6 +65,16 @@ namespace LetsEncrypt.Azure.Core.V2
                 .AddTransient<IDnsProvider, TDnsProvider>();               
         }
 
+        public static IServiceCollection AddNullCertificateConsumer(this IServiceCollection serviceCollection)
+        {
+            
+            return serviceCollection
+                .AddTransient<ICertificateConsumer, NullCertificateConsumer>()
+                .AddTransient<LetsencryptService>();
+        }
+
+
+
         public static IServiceCollection AddAzureAppService(this IServiceCollection serviceCollection, params AzureWebAppSettings[] settings)
         {
             if (settings == null || settings.Length == 0)
@@ -73,7 +84,7 @@ namespace LetsEncrypt.Azure.Core.V2
 
             return serviceCollection
                 .AddSingleton(settings)
-                .AddTransient<AzureWebAppService>()
+                .AddTransient<ICertificateConsumer, AzureWebAppService>()
                 .AddTransient<LetsencryptService>();
         }
     }

@@ -37,9 +37,18 @@ namespace LetsEncrypt.Azure.FunctionV2
             IServiceCollection serviceCollection = new ServiceCollection();
 
             serviceCollection.AddSingleton<ILogger>(log)
-            .Configure<LoggerFilterOptions>(options => options.MinLevel = LogLevel.Information)
-            .AddAzureAppService(Configuration.GetSection("AzureAppService").Get<AzureWebAppSettings>())
-            .AddSingleton<IKeyVaultClient>(kvClient)
+            .Configure<LoggerFilterOptions>(options => options.MinLevel = LogLevel.Information);
+            var certificateConsumer = Configuration.GetValue<string>("CertificateConsumer");
+            if (string.IsNullOrEmpty(certificateConsumer))
+            {
+                serviceCollection.AddAzureAppService(Configuration.GetSection("AzureAppService").Get<AzureWebAppSettings>());
+            }
+            else if (certificateConsumer.Equals("NullCertificateConsumer"))
+            {
+                serviceCollection.AddNullCertificateConsumer();
+            }
+
+            serviceCollection.AddSingleton<IKeyVaultClient>(kvClient)
             .AddKeyVaultCertificateStore(vaultBaseUrl);
 
 

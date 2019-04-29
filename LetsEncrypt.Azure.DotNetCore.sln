@@ -13,7 +13,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.dockerignore = .dockerignore
 		.gitignore = .gitignore
+		Directory.Build.props = Directory.Build.props
 		Dockerfile = Dockerfile
+		readme.md = readme.md
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LetsEncrypt.Azure.FunctionV2", "examples\LetsEncrypt.Azure.FunctionV2\LetsEncrypt.Azure.FunctionV2.csproj", "{FF8A14C9-8AC7-4057-A2EC-BA31C3965079}"
