@@ -27,12 +27,12 @@ Let's Encrypt Azure is my second attempt to bring support for Let's Encrypt cert
 
 
 # How it works
-Let's Encrypt Azure, works by deploying a resouce group with an Azure Function that runs code that talks to Let's Encrypt to request and renew the certificate, using the DNS challenge. Since DNS challenge is used the Function app needs access to the DNS provider used for the domain. All secrets required for the process are stored in Azure Key Vault. Once a certificate is generated it can be stored a various certificate storage locations and consumed by different certificate consumers. It used application insights for storing logs. 
+Let's Encrypt Azure, works by deploying a resouce group with an Azure Function that runs code that talks to Let's Encrypt to request and renew the certificate, using the DNS challenge. Since DNS challenge is used the Function app needs access to the DNS provider used for the domain. All secrets required for the process are stored in Azure Key Vault. Once a certificate is generated it can be stored in various certificate storage locations and consumed by different certificate consumers. Application insights is used for storing logs. 
 
 ![Overview of infrastructure](media/letsencrypt-azure-overiew.png)
 
 ## Certificate Storage
-The recommend certificate storage location is Azure Key Vault, but is is possible to configure the Azure Function to store the certificate in Azure Blob Storage as well. 
+The recommended certificate storage location is Azure Key Vault, but it is possible to configure the Azure Function to store the certificate in Azure Blob Storage as well. 
 
 ## Certificate Consumers
 Certificate consumers are the Azure Service that is going to consume the certificate. Right now the only supported consumer is Azure Web Apps, but more are planned for the future. 
