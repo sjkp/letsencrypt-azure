@@ -14,11 +14,11 @@ namespace LetsEncrypt.Azure.FunctionV2
     public class Helper
     {
         /// <summary>
-        /// Requests a Let's Encrypt wild card certificate using DNS challenge. 
+        /// Requests a Let's Encrypt wild card certificate using DNS challenge.
         /// The DNS provider used is Azure DNS.
         /// The certificate is saved to Azure Key Vault.
-        /// The Certificate is finally install to an Azure App Service. 
-        /// Configuration values are stored in Environment Variables. 
+        /// The Certificate is finally install to an Azure App Service.
+        /// Configuration values are stored in Environment Variables.
         /// </summary>
         /// <param name="log"></param>
         /// <returns></returns>

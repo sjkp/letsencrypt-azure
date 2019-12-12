@@ -28,10 +28,11 @@ namespace Letsencrypt.Azure.Core.Test
             clientId = config["clientId"];
             secret = config["clientSecret"];
         }
+
         public static AzureDnsSettings AzureDnsSettings
         {
             get
-            {                
+            {
                 return new AzureDnsSettings("dns", "ai4bots.com", AzureServicePrincipal, new AzureSubscription()
                 {
                     AzureRegion = "AzureGlobalCloud",
@@ -46,8 +47,8 @@ namespace Letsencrypt.Azure.Core.Test
             get
             {
                 var config = new ConfigurationBuilder()
-          .AddUserSecrets<UnoEuroDnsProviderTest>()
-          .Build();
+                  .AddUserSecrets<UnoEuroDnsProviderTest>()
+                  .Build();
 
                 return new UnoEuroDnsProvider(new UnoEuroDnsSettings()
                 {
@@ -67,7 +68,7 @@ namespace Letsencrypt.Azure.Core.Test
         public static AzureWebAppSettings AzureWebAppSettings
         {
             get
-            {               
+            {
                 return new AzureWebAppSettings("webappcfmv5fy7lcq7o", "LetsEncrypt-SiteExtension2", AzureServicePrincipal, new AzureSubscription()
                 {
                     Tenant = tenantId,

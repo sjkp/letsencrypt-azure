@@ -18,8 +18,7 @@ namespace LetsEncrypt.Azure.Core.V2.DnsProviders
         public AzureDnsProvider(AzureDnsSettings settings)
         {
             var restClient = AzureHelper.GetRestClient(settings.AzureServicePrincipal, settings.AzureSubscription);
-            
-            
+
             this.client = new DnsManagementClient(restClient);
             this.client.SubscriptionId = settings.AzureSubscription.SubscriptionId;
             this.settings = settings;

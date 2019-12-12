@@ -28,9 +28,9 @@ namespace LetsEncrypt.Azure.Core.V2
             this.dnsProvider = dnsProvider;
             this.dnsLookupService = dnsLookupService;
             this.certificateStore = certifcateStore;
-            this.logger = logger ??  NullLogger<AcmeClient>.Instance;
-            
+            this.logger = logger ?? NullLogger<AcmeClient>.Instance;
         }
+
         /// <summary>
         /// Request a certificate from lets encrypt using the DNS challenge, placing the challenge record in Azure DNS. 
         /// The certifiacte is not assigned, but just returned. 
@@ -139,9 +139,5 @@ namespace LetsEncrypt.Azure.Core.V2
 
             return acme;
         }
-
-
-
-
     }
 }

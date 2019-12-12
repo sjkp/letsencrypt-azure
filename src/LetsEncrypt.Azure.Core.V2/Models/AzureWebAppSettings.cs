@@ -1,11 +1,10 @@
 ﻿namespace LetsEncrypt.Azure.Core.V2.Models
+
 {
     public class AzureWebAppSettings
     {
-        public AzureWebAppSettings()
-        {
+        public AzureWebAppSettings() { }
 
-        }
         public AzureWebAppSettings(string webappName, string resourceGroup, AzureServicePrincipal servicePrincipal, AzureSubscription azureSubscription, string siteSlotName = null, string servicePlanResourceGroupName = null, bool useIPBasedSSL = false)
         {
             this.WebAppName = webappName;
@@ -16,7 +15,9 @@
             this.ServicePlanResourceGroupName = servicePlanResourceGroupName;
             this.UseIPBasedSSL = useIPBasedSSL;
         }
+
         public string WebAppName { get; set; }
+
         public string ResourceGroupName { get; set; }
 
         public string ServicePlanResourceGroupName { get; set; }

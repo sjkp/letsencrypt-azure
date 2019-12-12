@@ -5,7 +5,7 @@ using System.Text;
 
 namespace LetsEncrypt.Azure.Core.V2.Models
 {
-    public class AzureServicePrincipal 
+    public class AzureServicePrincipal
     {
         public bool UseManagendIdentity { get; set; }
         public string ClientId { get; set; }

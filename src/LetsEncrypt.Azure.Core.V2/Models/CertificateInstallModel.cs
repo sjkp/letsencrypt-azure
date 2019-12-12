@@ -12,13 +12,10 @@ namespace LetsEncrypt.Azure.Core.V2.Models
         /// <summary>
         /// Certificate info.
         /// </summary>
-        public CertificateInfo CertificateInfo
-        {
-            get; set;
-        }
+        public CertificateInfo CertificateInfo { get; set; }
 
         /// <summary>
-        /// The primary host name. 
+        /// The primary host name.
         /// </summary>
         public string Host
         {

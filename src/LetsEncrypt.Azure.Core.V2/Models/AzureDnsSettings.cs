@@ -5,7 +5,7 @@ using System.Text;
 namespace LetsEncrypt.Azure.Core.V2.Models
 {
     public class AzureDnsSettings
-    {   
+    {
         public AzureDnsSettings()
         {
             this.RelativeRecordSetName = "@";

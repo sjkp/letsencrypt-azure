@@ -27,7 +27,7 @@ namespace LetsEncrypt.Azure.Core.V2
             var dnsClient = GetDnsClient(hostname);
             var startTime = DateTime.UtcNow;
             string queriedDns = "";
-            //Lets encrypt checks a random authoritative server, thus we need to ensure that all respond with the challenge. 
+            //Lets encrypt checks a random authoritative server, thus we need to ensure that all respond with the challenge.
             foreach (var ns in dnsClient.NameServers)
             {
                 logger.LogInformation("Validating dns challenge exists on name server {NameServer}", ns.ToString());
@@ -57,10 +57,9 @@ namespace LetsEncrypt.Azure.Core.V2
             {
                 var ns = generalClient.Query(hostname, QueryType.NS);
                 var ip = ns.Answers.NsRecords().Select(s => generalClient.GetHostEntry(s.NSDName.Value));
-            
+
                 dnsClient = new LookupClient(ip.SelectMany(i => i.AddressList).Where(s => s.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork).ToArray());
                 dnsClient.UseCache = false;
-                
             }
 
             return dnsClient;

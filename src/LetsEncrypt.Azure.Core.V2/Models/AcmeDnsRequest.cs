@@ -8,12 +8,12 @@ namespace LetsEncrypt.Azure.Core.V2.Models
     public class AcmeDnsRequest : IAcmeDnsRequest
     {
         /// <summary>
-        /// The email to register with lets encrypt with. Will recieve notifications on expiring certificates. 
+        /// The email to register with lets encrypt with. Will recieve notifications on expiring certificates.
         /// </summary>
         public string RegistrationEmail { get; set; }
 
         /// <summary>
-        /// The ACME environment, use <see cref="LetsEncryptV2"/> or <see cref="LetsEncryptStagingV2"/> or provide you own ACME compatible endpoint by implementing <see cref="IAcmeEnvironment"/>. 
+        /// The ACME environment, use <see cref="LetsEncryptV2"/> or <see cref="LetsEncryptStagingV2"/> or provide you own ACME compatible endpoint by implementing <see cref="IAcmeEnvironment"/>.
         /// </summary>
         public AcmeEnvironment AcmeEnvironment { get; set; }
 
@@ -30,11 +30,11 @@ namespace LetsEncrypt.Azure.Core.V2.Models
     public interface IAcmeDnsRequest
     {
         /// <summary>
-        /// The email to register with lets encrypt with. Will recieve notifications on expiring certificates. 
+        /// The email to register with lets encrypt with. Will recieve notifications on expiring certificates.
         /// </summary>
         string RegistrationEmail { get; }
         /// <summary>
-        /// The ACME environment, use <see cref="LetsEncryptV2"/> or <see cref="LetsEncryptStagingV2"/> or provide you own ACME compatible endpoint by implementing <see cref="AcmeEnvironment"/>. 
+        /// The ACME environment, use <see cref="LetsEncryptV2"/> or <see cref="LetsEncryptStagingV2"/> or provide you own ACME compatible endpoint by implementing <see cref="AcmeEnvironment"/>.
         /// </summary>
         AcmeEnvironment AcmeEnvironment { get; }
 
@@ -54,7 +54,7 @@ namespace LetsEncrypt.Azure.Core.V2.Models
         public string State { get; set; }
         public string Locality { get; set; }
         public string Organization { get; set; }
-        public string OrganizationUnit { get; set; }        
+        public string OrganizationUnit { get; set; }
         public string CommonName { get; set; }
     }
 
@@ -71,13 +71,11 @@ namespace LetsEncrypt.Azure.Core.V2.Models
         {
             this.BaseUri = uri;
         }
+
         protected string name;
         public string Name
         {
-            get
-            {
-                return name;
-            }
+            get => name;
             set
             {
                 if ("production".Equals(value, StringComparison.InvariantCultureIgnoreCase))

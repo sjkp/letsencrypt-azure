@@ -40,10 +40,12 @@ namespace LetsEncrypt.Azure.Core.V2.DnsProviders
                     type = "TXT"
                 }};
 
-            var res = await this.httpClient.PutAsync($"records/TXT/{recordSetName}", new StringContent(JsonConvert.SerializeObject(acmeChallengeRecord), Encoding.UTF8, "application/json"));
-            body = await res.Content.ReadAsStringAsync();
-            res.EnsureSuccessStatusCode();
-
+            using (var stringContent = new StringContent(JsonConvert.SerializeObject(acmeChallengeRecord), Encoding.UTF8, "application/json"))
+            using (var res = await this.httpClient.PutAsync($"records/TXT/{recordSetName}", stringContent))
+            {
+                body = await res.Content.ReadAsStringAsync();
+                res.EnsureSuccessStatusCode();
+            }
         }
 
         public class GoDaddyDnsSettings
@@ -54,7 +56,6 @@ namespace LetsEncrypt.Azure.Core.V2.DnsProviders
             public string Domain { get; set; }
         }
 
-
         public class DnsRecord
         {
             public string data { get; set; }
@@ -62,6 +63,5 @@ namespace LetsEncrypt.Azure.Core.V2.DnsProviders
             public int ttl { get; set; }
             public string type { get; set; }
         }
-
     }
 }

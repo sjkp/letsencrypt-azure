@@ -8,6 +8,6 @@
         /// <summary>
         /// Should be AzureGlobalCloud, AzureChinaCloud, AzureUSGovernment or AzureGermanCloud
         /// </summary>
-        public string AzureRegion { get; set; }                            
+        public string AzureRegion { get; set; }
     }
 }

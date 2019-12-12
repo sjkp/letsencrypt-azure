@@ -20,15 +20,10 @@ namespace Letsencrypt.Azure.Core.Test
     {
         private readonly ILogger<AcmeClient> logger;
 
-        public AcmeClientTest()
-        {
+        public AcmeClientTest() { }
 
-        }
+        public AcmeClientTest(ILogger<AcmeClient> logger) => this.logger = logger;
 
-        public AcmeClientTest(ILogger<AcmeClient> logger)
-        {
-            this.logger = logger;
-        }
         [TestMethod]
         public async Task TestEndToEndAzure()
         {
@@ -74,7 +69,6 @@ namespace Letsencrypt.Azure.Core.Test
         [TestMethod]
         public async Task TestEndToEndUnoEuro()
         {
-           
             var dnsProvider = TestHelper.UnoEuroDnsProvider;
 
             var manager = new AcmeClient(dnsProvider, new DnsLookupService(), new NullCertificateStore());

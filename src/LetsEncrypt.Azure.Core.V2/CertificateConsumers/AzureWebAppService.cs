@@ -21,6 +21,7 @@ namespace LetsEncrypt.Azure.Core.V2
             this.settings = settings;
             this.logger = logger ?? NullLogger<AzureWebAppService>.Instance;
         }
+
         public async Task Install(ICertificateInstallModel model)
         {
             logger.LogInformation("Starting installation of certificate {Thumbprint} for {Host}", model.CertificateInfo.Certificate.Thumbprint, model.Host);
@@ -44,8 +45,6 @@ namespace LetsEncrypt.Azure.Core.V2
                     {
                         await appServiceManager.AppServiceCertificates.Define(model.Host + "-" + cert.Certificate.Thumbprint).WithRegion(s.RegionName).WithExistingResourceGroup(setting.ServicePlanResourceGroupName ?? setting.ResourceGroupName).WithPfxByteArray(model.CertificateInfo.PfxCertificate).WithPfxPassword(model.CertificateInfo.Password).CreateAsync();
                     }
-
-
 
                     var sslStates = siteOrSlot.HostNameSslStates;
                     var domainSslMappings = new List<KeyValuePair<string, HostNameSslState>>(sslStates.Where(_ => _.Key.Contains($".{model.Host.Substring(2)}")));
@@ -114,8 +113,6 @@ namespace LetsEncrypt.Azure.Core.V2
         {
             await webSiteClient.AppServiceCertificates.DeleteByResourceGroupAsync(setting.ServicePlanResourceGroupName ?? setting.ResourceGroupName, s.Name);
         }
-
-
     }
 }
 

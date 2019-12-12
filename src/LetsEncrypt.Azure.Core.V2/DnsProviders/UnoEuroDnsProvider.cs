@@ -16,17 +16,17 @@ namespace LetsEncrypt.Azure.Core.V2.DnsProviders
         public UnoEuroDnsProvider(UnoEuroDnsSettings settings)
         {
             this.httpClient = new HttpClient();
-            httpClient.BaseAddress = new Uri($"https://api.unoeuro.com/1/{settings.AccountName}/{settings.ApiKey}/my/products/{settings.Domain}/dns/records/");            
+            httpClient.BaseAddress = new Uri($"https://api.unoeuro.com/1/{settings.AccountName}/{settings.ApiKey}/my/products/{settings.Domain}/dns/records/");
         }
 
         public async Task Cleanup(string recordSetName)
         {
             DnsRecord acmeChallengeRecord = await GetRecord(recordSetName);
             if (acmeChallengeRecord != null)
-            {
-                var res = await this.httpClient.DeleteAsync($"{acmeChallengeRecord.record_id}");
-                res.EnsureSuccessStatusCode();
-            }
+                using (var res = await this.httpClient.DeleteAsync($"{acmeChallengeRecord.record_id}"))
+                {
+                    res.EnsureSuccessStatusCode();
+                }
         }
 
         public async Task PersistChallenge(string recordSetName, string recordValue)
@@ -44,10 +44,12 @@ namespace LetsEncrypt.Azure.Core.V2.DnsProviders
                     data = recordValue,
                     acmeChallengeRecord.priority
                 };
-                StringContent content = CreateRequestBody(update);
-                var res = await httpClient.PutAsync($"{acmeChallengeRecord.record_id}", content);
-                var s = res.Content.ReadAsStringAsync();
-                res.EnsureSuccessStatusCode();
+                using (StringContent content = CreateRequestBody(update))
+                using (var res = await httpClient.PutAsync($"{acmeChallengeRecord.record_id}", content))
+                {
+                    var s = res.Content.ReadAsStringAsync();
+                    res.EnsureSuccessStatusCode();
+                }
             }
             else
             {
@@ -59,9 +61,11 @@ namespace LetsEncrypt.Azure.Core.V2.DnsProviders
                     data = recordValue,
                     priority = 0
                 };
-                //Create
-                var res = await httpClient.PostAsync("", CreateRequestBody(acmeChallengeRecord));
-                res.EnsureSuccessStatusCode();
+                using (StringContent content = CreateRequestBody(acmeChallengeRecord))
+                using (var res = await httpClient.PostAsync("", content))
+                {
+                    res.EnsureSuccessStatusCode();
+                }
             }
         }
 

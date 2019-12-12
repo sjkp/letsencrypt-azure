@@ -24,11 +24,11 @@ namespace LetsEncrypt.Azure.Core.V2
             this.logger = logger ?? NullLogger<LetsencryptService>.Instance;
         }
         public async Task Run(AcmeDnsRequest acmeDnsRequest, int renewXNumberOfDaysBeforeExpiration)
+
         {
             try
             {
                 CertificateInstallModel model = null;
-                
                 var certname = acmeDnsRequest.Host.Substring(2) + "-" + acmeDnsRequest.AcmeEnvironment.Name;
                 var cert = await certificateStore.GetCertificate(certname, acmeDnsRequest.PFXPassword);
                 if (cert == null || cert.Certificate.NotAfter < DateTime.UtcNow.AddDays(renewXNumberOfDaysBeforeExpiration)) //Cert doesnt exist or expires in less than renewXNumberOfDaysBeforeExpiration days, lets renew.
@@ -52,7 +52,7 @@ namespace LetsEncrypt.Azure.Core.V2
                 logger.LogInformation("Removing expired certificates");
                 var expired = await certificateConsumer.CleanUp();
                 logger.LogInformation("The following certificates was removed {Thumbprints}", string.Join(", ", expired.ToArray()));
-                
+
             }
             catch (Exception e)
             {
