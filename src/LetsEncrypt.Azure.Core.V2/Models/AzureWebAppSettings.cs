@@ -1,5 +1,6 @@
-﻿namespace LetsEncrypt.Azure.Core.V2.Models
+﻿using System.ComponentModel.DataAnnotations;
 
+namespace LetsEncrypt.Azure.Core.V2.Models
 {
     public class AzureWebAppSettings
     {
@@ -16,8 +17,10 @@
             this.UseIPBasedSSL = useIPBasedSSL;
         }
 
+        [Required]
         public string WebAppName { get; set; }
 
+        [Required]
         public string ResourceGroupName { get; set; }
 
         public string ServicePlanResourceGroupName { get; set; }
@@ -26,8 +29,10 @@
 
         public bool UseIPBasedSSL { get; set; }
 
+        [Required]
         public AzureServicePrincipal AzureServicePrincipal { get; set; }
 
+        [Required]
         public AzureSubscription AzureSubscription { get; set; }
     }
 }

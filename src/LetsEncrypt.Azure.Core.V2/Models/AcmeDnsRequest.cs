@@ -1,6 +1,7 @@
 ﻿using Certes.Acme;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Text;
 
 namespace LetsEncrypt.Azure.Core.V2.Models
@@ -10,20 +11,26 @@ namespace LetsEncrypt.Azure.Core.V2.Models
         /// <summary>
         /// The email to register with lets encrypt with. Will recieve notifications on expiring certificates.
         /// </summary>
+        [Required]
         public string RegistrationEmail { get; set; }
 
         /// <summary>
         /// The ACME environment, use <see cref="LetsEncryptV2"/> or <see cref="LetsEncryptStagingV2"/> or provide you own ACME compatible endpoint by implementing <see cref="IAcmeEnvironment"/>.
         /// </summary>
+        [Required]
         public AcmeEnvironment AcmeEnvironment { get; set; }
 
         /// <summary>
-        /// The host name to request a certificate for e.g. *.example.com 
+        /// The host name to request a certificate for e.g. *.example.com
         /// </summary>
+        [Required]
         public string Host { get; set; }
 
+
+        [Required]
         public string PFXPassword { get; set; }
 
+        [Required]
         public CsrInfo CsrInfo { get; set; }
     }
 

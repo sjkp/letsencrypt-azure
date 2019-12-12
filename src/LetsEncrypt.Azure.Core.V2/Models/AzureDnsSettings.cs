@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Text;
 
 namespace LetsEncrypt.Azure.Core.V2.Models
@@ -20,13 +21,18 @@ namespace LetsEncrypt.Azure.Core.V2.Models
             this.RelativeRecordSetName = resourceGroupName;
         }
 
-        public AzureServicePrincipal AzureServicePrincipal {get;set;}
+        [Required]
+        public AzureServicePrincipal AzureServicePrincipal { get; set; }
+
+        [Required]
         public AzureSubscription AzureSubscription { get; set; }
-        
+
+        [Required]
         public string ResourceGroupName { get;  set; }
 
         public string RelativeRecordSetName { get; set; }
 
+        [Required]
         public string ZoneName { get; set; }
 
     }
