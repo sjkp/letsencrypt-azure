@@ -17,6 +17,7 @@ namespace LetsEncrypt.Azure.Core.V2
 {
     public class AcmeClient
     {
+        private readonly HttpClient http = new HttpClient();
         private readonly IDnsProvider dnsProvider;
         private readonly DnsLookupService dnsLookupService;
         private readonly ICertificateStore certificateStore;
@@ -129,12 +130,12 @@ namespace LetsEncrypt.Azure.Core.V2
                 var pemKey = acme.AccountKey.ToPem();
                 await certificateStore.SaveSecret(filename, pemKey);
                 await Task.Delay(10000); //Wait a little before using the new account.
-                acme = new AcmeContext(acmeDirectoryUri, acme.AccountKey, new AcmeHttpClient(acmeDirectoryUri, new HttpClient()));
+                acme = new AcmeContext(acmeDirectoryUri, acme.AccountKey, new AcmeHttpClient(acmeDirectoryUri, http));
             }
             else
             {
                 var accountKey = KeyFactory.FromPem(secret);
-                acme = new AcmeContext(acmeDirectoryUri, accountKey, new AcmeHttpClient(acmeDirectoryUri, new HttpClient()));
+                acme = new AcmeContext(acmeDirectoryUri, accountKey, new AcmeHttpClient(acmeDirectoryUri, http));
             }
 
             return acme;
