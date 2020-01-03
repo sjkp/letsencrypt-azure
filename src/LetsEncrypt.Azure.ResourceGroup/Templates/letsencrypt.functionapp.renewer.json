@@ -36,12 +36,6 @@
         "description": "The name of the web application that should have the SSL Cert assigned"
       }
     },
-    "dnsZoneName": {
-      "type": "string",
-      "metadata": {
-        "description": "The DNS zone name in azure, e.g. yourwebsite.com"
-      }
-    },
     "dnsResourceGroupName": {
       "type": "string",
       "metadata": {
@@ -97,10 +91,10 @@
       },
       "defaultValue": "staging"
     },
-    "certificateDomain": {
+    "certificateDomains": {
       "type": "string",
       "metadata": {
-        "description": "The domain name to request a certificate for e.g. *.yourdomain.com"
+        "description": "The coma separated domain names to request a certificate for e.g. *.yourdomain.com"
       }
     },
     "pfxPass": {
@@ -261,7 +255,6 @@
             "AzureAppService__AzureSubscription__Tenant": "[subscription().tenantId]",
             "AzureAppService__AzureSubscription__SubscriptionId": "[subscription().subscriptionId]",
             "AzureAppService__AzureSubscription__AzureRegion": "AzureGlobalCloud",
-            "DnsSettings__ZoneName": "[parameters('dnsZoneName')]",
             "DnsSettings__ResourceGroupName": "[parameters('dnsResourceGroupName')]",
             "DnsSettings__AzureServicePrincipal__UseManagendIdentity": "true",
             "DnsSettings__AzureSubscription__Tenant": "[subscription().tenantId]",
@@ -270,7 +263,7 @@
             "AcmeDnsRequest__CsrInfo__Organization": "[parameters('csrOrganisation')]",
             "AcmeDnsRequest__RegistrationEmail": "[parameters('acmeRegistrationEmail')]",
             "AcmeDnsRequest__AcmeEnvironment__Name": "[parameters('acmeEnvironment')]",
-            "AcmeDnsRequest__Host": "[parameters('certificateDomain')]",
+            "AcmeDnsRequest__Hosts": "[parameters('certificateDomains')]",
             "AcmeDnsRequest__PFXPassword": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', parameters('vaultName'), variables('pfxPass'))).secretUriWithVersion,  ')')]",
             "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(concat('microsoft.insights/components/', variables('appInsightsName'))).InstrumentationKey]",
             "WEBSITE_RUN_FROM_PACKAGE": "[parameters('runFromPackage')]",

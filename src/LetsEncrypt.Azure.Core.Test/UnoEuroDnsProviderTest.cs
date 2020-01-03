@@ -18,19 +18,20 @@ namespace Letsencrypt.Azure.Core.Test
             var config = new ConfigurationBuilder()
               .AddUserSecrets<UnoEuroDnsProviderTest>()
               .Build();
-            
+
+            string domain = config["domain"];
             var dnsProvider = new UnoEuroDnsProvider(new UnoEuroDnsSettings()
             {
                 AccountName = config["accountName"],
                 ApiKey = config["apiKey"],
-                Domain = config["domain"]
+                Domain = domain
             });
             //Test create new
-            await dnsProvider.PersistChallenge("_acme-challenge", Guid.NewGuid().ToString());
+            await dnsProvider.PersistChallenge(zoneName: domain, recordSetName: "_acme-challenge", recordValue: Guid.NewGuid().ToString());
             //Test Update existing
-            await dnsProvider.PersistChallenge("_acme-challenge", Guid.NewGuid().ToString());
+            await dnsProvider.PersistChallenge(zoneName: domain, recordSetName: "_acme-challenge", recordValue: Guid.NewGuid().ToString());
             //Test clean up
-            await dnsProvider.Cleanup("_acme-challenge");
+            await dnsProvider.Cleanup(domain, "_acme-challenge");
 
         }
 
@@ -39,14 +40,16 @@ namespace Letsencrypt.Azure.Core.Test
         {
             var service = TestHelper.UnoEuroDnsProvider;
 
+            const string Domain = "tiimo.dk";
+            const string HostName = "*." + Domain;
+
             var id = Guid.NewGuid().ToString();
-            await service.PersistChallenge("_acme-challenge", id);
+            await service.PersistChallenge(zoneName: Domain, recordSetName: "_acme-challenge", recordValue: id);
 
-
-            var exists = await new DnsLookupService().Exists("*.tiimo.dk", id, service.MinimumTtl);
+            var exists = await new DnsLookupService().Exists(HostName, id, service.MinimumTtl);
             Assert.IsTrue(exists);
 
-            await service.Cleanup("_acme-challenge");
+            await service.Cleanup(Domain, "_acme-challenge");
         }
 
 

@@ -4,6 +4,7 @@ using LetsEncrypt.Azure.Core.V2.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace LetsEncrypt.Azure.Core.V2
@@ -13,7 +14,6 @@ namespace LetsEncrypt.Azure.Core.V2
         private readonly AcmeClient acmeClient;
         private readonly ICertificateStore certificateStore;
         private readonly ICertificateConsumer certificateConsumer;
-        private readonly AzureWebAppService azureWebAppService;
         private readonly ILogger<LetsencryptService> logger;
 
         public LetsencryptService(AcmeClient acmeClient, ICertificateStore certificateStore, ICertificateConsumer certificateConsumer, ILogger<LetsencryptService> logger = null)
@@ -23,8 +23,8 @@ namespace LetsEncrypt.Azure.Core.V2
             this.certificateConsumer = certificateConsumer;
             this.logger = logger ?? NullLogger<LetsencryptService>.Instance;
         }
-        public async Task Run(AcmeDnsRequest acmeDnsRequest, int renewXNumberOfDaysBeforeExpiration)
 
+        public async Task Run(IAcmeDnsRequest acmeDnsRequest, int renewXNumberOfDaysBeforeExpiration)
         {
             try
             {
@@ -44,7 +44,7 @@ namespace LetsEncrypt.Azure.Core.V2
                     model = new CertificateInstallModel()
                     {
                         CertificateInfo = cert,
-                        Host = acmeDnsRequest.Host
+                        Hosts = acmeDnsRequest.Hosts
                     };
                 }
                 await certificateConsumer.Install(model);

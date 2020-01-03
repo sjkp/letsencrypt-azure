@@ -24,7 +24,8 @@ namespace LetsEncrypt.Azure.Core.V2
 
         public async Task Install(ICertificateInstallModel model)
         {
-            logger.LogInformation("Starting installation of certificate {Thumbprint} for {Host}", model.CertificateInfo.Certificate.Thumbprint, model.Host);
+            string hostsComaSeparated = string.Join(",", model.Hosts);
+            logger.LogInformation("Starting installation of certificate {Thumbprint} for {Host}", model.CertificateInfo.Certificate.Thumbprint, hostsComaSeparated);
             var cert = model.CertificateInfo;
             foreach (var setting in this.settings)
             {
@@ -43,11 +44,21 @@ namespace LetsEncrypt.Azure.Core.V2
                     var existingCerts = await appServiceManager.AppServiceCertificates.ListByResourceGroupAsync(setting.ServicePlanResourceGroupName ?? setting.ResourceGroupName);
                     if (existingCerts.All(_ => _.Thumbprint != cert.Certificate.Thumbprint))
                     {
-                        await appServiceManager.AppServiceCertificates.Define(model.Host + "-" + cert.Certificate.Thumbprint).WithRegion(s.RegionName).WithExistingResourceGroup(setting.ServicePlanResourceGroupName ?? setting.ResourceGroupName).WithPfxByteArray(model.CertificateInfo.PfxCertificate).WithPfxPassword(model.CertificateInfo.Password).CreateAsync();
+                        await appServiceManager
+                            .AppServiceCertificates
+                            .Define($"{hostsComaSeparated}-{cert.Certificate.Thumbprint}")
+                            .WithRegion(s.RegionName)
+                            .WithExistingResourceGroup(setting.ServicePlanResourceGroupName ?? setting.ResourceGroupName)
+                            .WithPfxByteArray(model.CertificateInfo.PfxCertificate)
+                            .WithPfxPassword(model.CertificateInfo.Password)
+                            .CreateAsync();
                     }
 
                     var sslStates = siteOrSlot.HostNameSslStates;
-                    var domainSslMappings = new List<KeyValuePair<string, HostNameSslState>>(sslStates.Where(_ => _.Key.Contains($".{model.Host.Substring(2)}")));
+                    var domainSslMappings = new List<KeyValuePair<string, HostNameSslState>>(
+                        sslStates.Where(_ =>
+                            model.Hosts.Any(h => _.Key == h
+                                              || _.Key.Contains($".{h}"))));
 
                     if (domainSslMappings.Any())
                     {
@@ -74,6 +85,7 @@ namespace LetsEncrypt.Azure.Core.V2
                         }
                     }
                 }
+                // TODO: Catch errors one by one
                 catch (Exception e)
                 {
                     logger.LogCritical(e, "Unable to install certificate for '{WebApp}'", setting.WebAppName);

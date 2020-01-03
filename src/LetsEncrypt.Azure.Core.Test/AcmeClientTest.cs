@@ -27,11 +27,11 @@ namespace Letsencrypt.Azure.Core.Test
         [TestMethod]
         public async Task TestEndToEndAzure()
         {
-            var config = TestHelper.AzureDnsSettings;
+            var settings = TestHelper.AzureDnsSettings;
 
-            var manager = new AcmeClient(new AzureDnsProvider(config), new DnsLookupService(), null, this.logger);
+            var manager = new AcmeClient(new AzureDnsProvider(settings), new DnsLookupService(), new NullCertificateStore(), this.logger);
 
-            var dnsRequest = new AcmeDnsRequest()
+            IAcmeDnsRequest dnsRequest = new AcmeDnsRequest()
             {
                 Host = "*.ai4bots.com",
                 PFXPassword = "Pass@word",

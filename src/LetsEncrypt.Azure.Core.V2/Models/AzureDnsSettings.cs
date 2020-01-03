@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 
@@ -12,12 +13,11 @@ namespace LetsEncrypt.Azure.Core.V2.Models
             this.RelativeRecordSetName = "@";
         }
 
-        public AzureDnsSettings(string resourceGroupName, string zoneName, AzureServicePrincipal servicePrincipal, AzureSubscription azureSubscription, string relativeRecordName = "@")
+        public AzureDnsSettings(string resourceGroupName, AzureServicePrincipal servicePrincipal, AzureSubscription azureSubscription, string relativeRecordName = "@")
         {
             this.AzureSubscription = azureSubscription;
             this.AzureServicePrincipal = servicePrincipal;
             this.ResourceGroupName = resourceGroupName;
-            this.ZoneName = zoneName;
             this.RelativeRecordSetName = resourceGroupName;
         }
 
@@ -28,12 +28,8 @@ namespace LetsEncrypt.Azure.Core.V2.Models
         public AzureSubscription AzureSubscription { get; set; }
 
         [Required]
-        public string ResourceGroupName { get;  set; }
+        public string ResourceGroupName { get; set; }
 
         public string RelativeRecordSetName { get; set; }
-
-        [Required]
-        public string ZoneName { get; set; }
-
     }
 }

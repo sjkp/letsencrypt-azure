@@ -72,7 +72,7 @@ namespace Letsencrypt.Azure.Core.Test
                 return new AzureWebAppSettings("webappcfmv5fy7lcq7o", "LetsEncrypt-SiteExtension2", AzureServicePrincipal, new AzureSubscription()
                 {
                     Tenant = tenantId,
-                    SubscriptionId = "3f09c367-93e0-4b61-bbe5-dcb5c686bf8a",
+                    SubscriptionId = subscriptionId,
                     AzureRegion = "AzureGlobalCloud"
                 });
             }

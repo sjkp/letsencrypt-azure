@@ -21,12 +21,12 @@ namespace LetsEncrypt.Azure.Core.V2.DnsProviders
 
         public int MinimumTtl => 600;
 
-        public Task Cleanup(string recordSetName)
+        public Task Cleanup(string zoneName, string recordSetName)
         {
             return Task.FromResult(0);
         }
 
-        public async Task PersistChallenge(string recordSetName, string recordValue)
+        public async Task PersistChallenge(string zoneName, string recordSetName, string recordValue)
         {
             var body = await httpClient.GetStringAsync($"records/TXT/{recordSetName}");
             var acmeChallengeRecord = JsonConvert.DeserializeObject<DnsRecord[]>(body);

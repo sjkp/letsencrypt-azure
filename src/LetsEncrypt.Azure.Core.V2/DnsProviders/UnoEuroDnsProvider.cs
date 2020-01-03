@@ -15,21 +15,25 @@ namespace LetsEncrypt.Azure.Core.V2.DnsProviders
 
         public UnoEuroDnsProvider(UnoEuroDnsSettings settings)
         {
+#pragma warning disable DF0020 // Marks undisposed objects assinged to a field, originated in an object creation.
             this.httpClient = new HttpClient();
+#pragma warning restore DF0020 // Marks undisposed objects assinged to a field, originated in an object creation.
             httpClient.BaseAddress = new Uri($"https://api.unoeuro.com/1/{settings.AccountName}/{settings.ApiKey}/my/products/{settings.Domain}/dns/records/");
         }
 
-        public async Task Cleanup(string recordSetName)
+        public async Task Cleanup(string zoneName, string recordSetName)
         {
             DnsRecord acmeChallengeRecord = await GetRecord(recordSetName);
             if (acmeChallengeRecord != null)
                 using (var res = await this.httpClient.DeleteAsync($"{acmeChallengeRecord.record_id}"))
                 {
+#pragma warning disable DF0001 // Marks undisposed anonymous objects from method invocations.
                     res.EnsureSuccessStatusCode();
+#pragma warning restore DF0001 // Marks undisposed anonymous objects from method invocations.
                 }
         }
 
-        public async Task PersistChallenge(string recordSetName, string recordValue)
+        public async Task PersistChallenge(string zoneName, string recordSetName, string recordValue)
         {
             DnsRecord acmeChallengeRecord = await GetRecord(recordSetName);
 
@@ -48,7 +52,9 @@ namespace LetsEncrypt.Azure.Core.V2.DnsProviders
                 using (var res = await httpClient.PutAsync($"{acmeChallengeRecord.record_id}", content))
                 {
                     var s = res.Content.ReadAsStringAsync();
+#pragma warning disable DF0001 // Marks undisposed anonymous objects from method invocations.
                     res.EnsureSuccessStatusCode();
+#pragma warning restore DF0001 // Marks undisposed anonymous objects from method invocations.
                 }
             }
             else
@@ -64,7 +70,9 @@ namespace LetsEncrypt.Azure.Core.V2.DnsProviders
                 using (StringContent content = CreateRequestBody(acmeChallengeRecord))
                 using (var res = await httpClient.PostAsync("", content))
                 {
+#pragma warning disable DF0001 // Marks undisposed anonymous objects from method invocations.
                     res.EnsureSuccessStatusCode();
+#pragma warning restore DF0001 // Marks undisposed anonymous objects from method invocations.
                 }
             }
         }

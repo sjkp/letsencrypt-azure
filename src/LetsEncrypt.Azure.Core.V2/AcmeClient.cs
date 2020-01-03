@@ -7,10 +7,13 @@ using LetsEncrypt.Azure.Core.V2.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace LetsEncrypt.Azure.Core.V2
@@ -33,8 +36,8 @@ namespace LetsEncrypt.Azure.Core.V2
         }
 
         /// <summary>
-        /// Request a certificate from lets encrypt using the DNS challenge, placing the challenge record in Azure DNS. 
-        /// The certifiacte is not assigned, but just returned. 
+        /// Request a certificate from lets encrypt using the DNS challenge, placing the challenge record in Azure DNS.
+        /// The certifiacte is not assigned, but just returned.
         /// </summary>
         /// <param name="azureDnsEnvironment"></param>
         /// <param name="acmeConfig"></param>
@@ -45,33 +48,49 @@ namespace LetsEncrypt.Azure.Core.V2
             var acmeContext = await GetOrCreateAcmeContext(acmeConfig.AcmeEnvironment.BaseUri, acmeConfig.RegistrationEmail);
             var idn = new IdnMapping();
 
-            var order = await acmeContext.NewOrder(new[] { "*." + idn.GetAscii(acmeConfig.Host.Substring(2)) });
-            var a = await order.Authorizations();
-            var authz = a.First();
-            var challenge = await authz.Dns();
-            var dnsTxt = acmeContext.AccountKey.DnsTxt(challenge.Token);
-            logger.LogInformation("Got DNS challenge token {Token}", dnsTxt);
-
-            ///add dns entry
-            await this.dnsProvider.PersistChallenge("_acme-challenge", dnsTxt);
-
-            if (!(await this.dnsLookupService.Exists(acmeConfig.Host, dnsTxt, this.dnsProvider.MinimumTtl)))
+            var orderHosts = (from host in acmeConfig.Hosts
+                              let asciiHost = idn.GetAscii(host)
+                              let asciiDomain = asciiHost.StartsWith("*.")
+                                              ? asciiHost.Substring(2)
+                                              : asciiHost
+                              select (Host: asciiHost, Domain: asciiDomain))
+                             .ToImmutableArray();
+            var order = await acmeContext.NewOrder(orderHosts.Select(h => h.Host).ToImmutableArray());
+            var authorizations = (await order.Authorizations()).ToImmutableArray();
+            var tasks = new List<Task>(authorizations.Length);
+            var dnsTxts = new List<string>(authorizations.Length);
+            // TODO: Consider parallelizing
+            for (var i = 0; i < authorizations.Length; i++) /*tasks.Add(Task.Factory.StartNew(async state =>*/
             {
-                throw new TimeoutException($"Unable to validate that _acme-challenge was stored in txt _acme-challenge record after {this.dnsProvider.MinimumTtl} seconds");
-            }
+                //var (authorization, host) = (Tuple<IAuthorizationContext, string>)state;
+                var (authorization, zoneName) = (authorizations[i], orderHosts[i].Domain);
+                var challenge = await authorization.Dns();
+                var dnsTxt = acmeContext.AccountKey.DnsTxt(challenge.Token);
+                logger.LogInformation("Got DNS challenge token {Token}", dnsTxt);
 
-            
-            Challenge chalResp = await challenge.Validate();
-            while (chalResp.Status == ChallengeStatus.Pending || chalResp.Status == ChallengeStatus.Processing)
-            {
-                logger.LogInformation("Dns challenge response status {ChallengeStatus} more info at {ChallengeStatusUrl} retrying in 5 sec", chalResp.Status, chalResp.Url.ToString());
-                await Task.Delay(5000);
-                chalResp = await challenge.Resource();
-            }
+                ///add dns entry
+                await this.dnsProvider.PersistChallenge(zoneName, "_acme-challenge", dnsTxt);
+                await Task.Delay(500);
 
-            logger.LogInformation("Finished validating dns challenge token, response was {ChallengeStatus} more info at {ChallengeStatusUrl}", chalResp.Status, chalResp.Url);
+                if (!(await this.dnsLookupService.Exists(zoneName, dnsTxt, this.dnsProvider.MinimumTtl)))
+                {
+                    throw new TimeoutException($"Unable to validate that _acme-challenge was stored in txt _acme-challenge record after {this.dnsProvider.MinimumTtl} seconds");
+                }
 
-            var privateKey = await GetOrCreateKey(acmeConfig.AcmeEnvironment.BaseUri, acmeConfig.Host);
+                Challenge chalResp = await challenge.Validate();
+                while (chalResp.Status == ChallengeStatus.Pending || chalResp.Status == ChallengeStatus.Processing)
+                {
+                    logger.LogInformation("Dns challenge response status {ChallengeStatus} more info at {ChallengeStatusUrl} retrying in 5 sec", chalResp.Status, chalResp.Url.ToString());
+                    await Task.Delay(5000);
+                    chalResp = await challenge.Resource();
+                }
+
+                logger.LogInformation("Finished validating dns challenge token, response was {ChallengeStatus} more info at {ChallengeStatusUrl}", chalResp.Status, chalResp.Url);
+            }/*, Tuple.Create(authorizations[i], orderHosts[i].BaseHost), CancellationToken.None, TaskCreationOptions.None, TaskScheduler.Default).Unwrap());
+            await Task.WhenAll(tasks);
+            tasks.Clear()*/;
+
+            var privateKey = await GetOrCreateKey(acmeConfig.AcmeEnvironment.BaseUri, acmeConfig.Hosts);
             var cert = await order.Generate(new Certes.CsrInfo
             {
                 CountryName = acmeConfig.CsrInfo.CountryName,
@@ -84,27 +103,36 @@ namespace LetsEncrypt.Azure.Core.V2
 
             var certPem = cert.ToPem();
 
+            string hostsPlusSeparated = string.Join("+", acmeConfig.Hosts);
             var pfxBuilder = cert.ToPfx(privateKey);
-            var pfx = pfxBuilder.Build(acmeConfig.Host, acmeConfig.PFXPassword);
+            var pfx = pfxBuilder.Build(hostsPlusSeparated, acmeConfig.PFXPassword);
 
-            await this.dnsProvider.Cleanup(dnsTxt);
+            for (var i = 0; i < dnsTxts.Count; i++)
+            {
+                tasks.Add(this.dnsProvider.Cleanup(orderHosts[i].Domain, dnsTxts[i]));
+            }
+            await Task.WhenAll(tasks);
+            tasks.Clear();
 
             return new CertificateInstallModel()
             {
                 CertificateInfo = new CertificateInfo()
                 {
+#pragma warning disable DF0100 // Marks return values that hides the IDisposable implementation of return value.
                     Certificate = new X509Certificate2(pfx, acmeConfig.PFXPassword, X509KeyStorageFlags.DefaultKeySet | X509KeyStorageFlags.PersistKeySet | X509KeyStorageFlags.Exportable),
-                    Name = $"{acmeConfig.Host} {DateTime.Now}",
+#pragma warning restore DF0100 // Marks return values that hides the IDisposable implementation of return value.
+                    Name = $"{acmeConfig.Hosts} {DateTime.Now}",
                     Password = acmeConfig.PFXPassword,
                     PfxCertificate = pfx
                 },
-                Host = acmeConfig.Host
+                Hosts = acmeConfig.Hosts
             };
         }
 
-        private async Task<IKey> GetOrCreateKey(Uri acmeDirectory, string host)
+        private async Task<IKey> GetOrCreateKey(Uri acmeDirectory, ImmutableArray<string> hosts)
         {
-            string secretName = $"privatekey{host}--{acmeDirectory.Host}";
+            string hostsPlusSeparated = string.Join("+", hosts);
+            string secretName = $"privatekey-{hostsPlusSeparated}--{acmeDirectory.Host}";
             var key = await this.certificateStore.GetSecret(secretName);
             if (string.IsNullOrEmpty(key))
             {

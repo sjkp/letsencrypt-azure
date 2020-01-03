@@ -20,7 +20,7 @@ namespace Letsencrypt.Azure.Core.Test
 
         public GoDaddyDnsProviderTest()
         {
-            this.Configuration = new ConfigurationBuilder()            
+            this.Configuration = new ConfigurationBuilder()
             .AddUserSecrets<GoDaddyDnsProviderTest>()
             .Build();
 
@@ -37,13 +37,13 @@ namespace Letsencrypt.Azure.Core.Test
         public async Task TestPersistChallenge()
         {
             var id = Guid.NewGuid().ToString();
-            await DnsService.PersistChallenge("_acme-challenge", id);
+            await DnsService.PersistChallenge(zoneName: Domain, recordSetName: "_acme-challenge", recordValue: id);
 
 
             var exists = await new DnsLookupService().Exists("*." + Domain, id);
             Assert.IsTrue(exists);
 
-            await DnsService.Cleanup("_acme-challenge");
+            await DnsService.Cleanup(Domain, "_acme-challenge");
         }
     }
 }
