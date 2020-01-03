@@ -33,7 +33,7 @@ namespace Letsencrypt.Azure.Core.Test
 
             IAcmeDnsRequest dnsRequest = new AcmeDnsRequest()
             {
-                Host = "*.ai4bots.com",
+                Hosts = "*.ai4bots.com",
                 PFXPassword = "Pass@word",
                 RegistrationEmail = "mail@sjkp.dk",
                 AcmeEnvironment = new LetsEncryptStagingV2(),
@@ -51,19 +51,20 @@ namespace Letsencrypt.Azure.Core.Test
 
             Assert.IsNotNull(res);
 
-            File.WriteAllBytes($"{dnsRequest.Host.Substring(2)}.pfx", res.CertificateInfo.PfxCertificate);
-
-            var pass = new System.Security.SecureString();
-            Array.ForEach(dnsRequest.PFXPassword.ToCharArray(), c =>
+            string hostsPlusSeparated = AcmeClient.GetHostsPlusSeparated(dnsRequest.Hosts);
+            File.WriteAllBytes($"{hostsPlusSeparated}.pfx", res.CertificateInfo.PfxCertificate);
+            using (var pass = new System.Security.SecureString())
             {
-                pass.AppendChar(c);
-            });
-            File.WriteAllBytes($"exported-{dnsRequest.Host.Substring(2)}.pfx", res.CertificateInfo.Certificate.Export(System.Security.Cryptography.X509Certificates.X509ContentType.Pkcs12, pass));
+                Array.ForEach(dnsRequest.PFXPassword.ToCharArray(), c =>
+                {
+                    pass.AppendChar(c);
+                });
+                File.WriteAllBytes($"exported-{hostsPlusSeparated}.pfx", res.CertificateInfo.Certificate.Export(System.Security.Cryptography.X509Certificates.X509ContentType.Pkcs12, pass));
 
+                var certService = new AzureWebAppService(new[] { TestHelper.AzureWebAppSettings });
 
-            var certService = new AzureWebAppService(new[] { TestHelper.AzureWebAppSettings });
-
-            await certService.Install(res);
+                await certService.Install(res);
+            }
         }
 
         [TestMethod]
@@ -75,7 +76,7 @@ namespace Letsencrypt.Azure.Core.Test
 
             var dnsRequest = new AcmeDnsRequest()
             {
-                Host = "*.tiimo.dk",
+                Hosts = "*.tiimo.dk",
                 PFXPassword = "Pass@word",
                 RegistrationEmail = "mail@sjkp.dk",
                 AcmeEnvironment = new LetsEncryptStagingV2(),
@@ -93,7 +94,7 @@ namespace Letsencrypt.Azure.Core.Test
 
             Assert.IsNotNull(res);
 
-            File.WriteAllBytes($"{dnsRequest.Host.Substring(2)}.pfx", res.CertificateInfo.PfxCertificate);
+            File.WriteAllBytes($"{dnsRequest.Hosts.Substring(2)}.pfx", res.CertificateInfo.PfxCertificate);
         }
 
 
@@ -107,7 +108,7 @@ namespace Letsencrypt.Azure.Core.Test
 
             var dnsRequest = new AcmeDnsRequest()
             {
-                Host = "*.åbningstider.info",
+                Hosts = "*.åbningstider.info",
                 PFXPassword = "Pass@word",
                 RegistrationEmail = "mail@sjkp.dk",
                 AcmeEnvironment = new LetsEncryptStagingV2(),
@@ -125,7 +126,7 @@ namespace Letsencrypt.Azure.Core.Test
 
             Assert.IsNotNull(res);
 
-            File.WriteAllBytes($"{dnsRequest.Host.Substring(2)}.pfx", res.CertificateInfo.PfxCertificate);
+            File.WriteAllBytes($"{dnsRequest.Hosts.Substring(2)}.pfx", res.CertificateInfo.PfxCertificate);
 
             var certService = new AzureWebAppService(new[] { TestHelper.AzureWebAppSettings });
 

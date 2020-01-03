@@ -29,7 +29,9 @@ namespace LetsEncrypt.Azure.Core.V2
             try
             {
                 CertificateInstallModel model = null;
-                var certname = acmeDnsRequest.Host.Substring(2) + "-" + acmeDnsRequest.AcmeEnvironment.Name;
+
+                string hostsPlusSeparated = AcmeClient.GetHostsPlusSeparated(acmeDnsRequest.Hosts);
+                var certname = $"{hostsPlusSeparated}-{acmeDnsRequest.AcmeEnvironment.Name}";
                 var cert = await certificateStore.GetCertificate(certname, acmeDnsRequest.PFXPassword);
                 if (cert == null || cert.Certificate.NotAfter < DateTime.UtcNow.AddDays(renewXNumberOfDaysBeforeExpiration)) //Cert doesnt exist or expires in less than renewXNumberOfDaysBeforeExpiration days, lets renew.
                 {

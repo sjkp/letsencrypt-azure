@@ -103,7 +103,7 @@ namespace LetsEncrypt.Azure.Core.V2
 
             var certPem = cert.ToPem();
 
-            string hostsPlusSeparated = string.Join("+", acmeConfig.Hosts);
+            string hostsPlusSeparated = GetHostsPlusSeparated(acmeConfig.Hosts);
             var pfxBuilder = cert.ToPfx(privateKey);
             var pfx = pfxBuilder.Build(hostsPlusSeparated, acmeConfig.PFXPassword);
 
@@ -129,9 +129,12 @@ namespace LetsEncrypt.Azure.Core.V2
             };
         }
 
+        internal static string GetHostsPlusSeparated(ImmutableArray<string> hosts)
+         => string.Join("+", hosts.Select(h => h.StartsWith("*") ? h.Substring(1) : h));
+
         private async Task<IKey> GetOrCreateKey(Uri acmeDirectory, ImmutableArray<string> hosts)
         {
-            string hostsPlusSeparated = string.Join("+", hosts);
+            string hostsPlusSeparated = GetHostsPlusSeparated(hosts);
             string secretName = $"privatekey-{hostsPlusSeparated}--{acmeDirectory.Host}";
             var key = await this.certificateStore.GetSecret(secretName);
             if (string.IsNullOrEmpty(key))
