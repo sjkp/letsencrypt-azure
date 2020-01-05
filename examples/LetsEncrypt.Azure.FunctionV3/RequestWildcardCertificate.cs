@@ -16,7 +16,7 @@ using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Azure.KeyVault;
 using System.Web.Http;
 
-namespace LetsEncrypt.Azure.FunctionV2
+namespace LetsEncrypt.Azure.FunctionV3
 {
     public static class RequestWildcardCertificate
     {

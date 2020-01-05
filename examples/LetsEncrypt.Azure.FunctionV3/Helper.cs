@@ -11,7 +11,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
-namespace LetsEncrypt.Azure.FunctionV2
+namespace LetsEncrypt.Azure.FunctionV3
 {
     public class Helper
     {

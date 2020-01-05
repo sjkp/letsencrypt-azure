@@ -246,7 +246,7 @@
             "AzureWebJobsStorage": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', parameters('vaultName'), variables('storageConnectionStringName'))).secretUriWithVersion,  ')')]",
             "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING": "[concat('@Microsoft.KeyVault(SecretUri=', reference(resourceId('Microsoft.KeyVault/vaults/secrets', parameters('vaultName'), variables('storageConnectionStringName'))).secretUriWithVersion,  ')')]",
             "WEBSITE_CONTENTSHARE": "[toLower(parameters('functionAppName'))]",
-            "FUNCTIONS_EXTENSION_VERSION": "~2",
+            "FUNCTIONS_EXTENSION_VERSION": "~3",
             "FUNCTIONS_WORKER_RUNTIME": "dotnet",
             "Vault": "[parameters('vaultName')]",
             "AzureAppService__WebAppName": "[parameters('targetWebAppName')]",
