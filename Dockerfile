@@ -1,4 +1,4 @@
-FROM microsoft/dotnet:2.1-sdk-alpine AS build
+FROM microsoft/dotnet:2.2-sdk-alpine AS build
 # Set the working directory witin the container
 WORKDIR /src
 
@@ -17,8 +17,8 @@ RUN dotnet publish -c release ./src/LetsEncrypt.Azure.Runner/LetsEncrypt.Azure.R
 
 
 # Build runtime image
-FROM microsoft/dotnet:2.1-aspnetcore-runtime-alpine AS app
+FROM microsoft/dotnet:2.2-aspnetcore-runtime-alpine AS app
 WORKDIR /app
-COPY --from=build /src/src/LetsEncrypt.Azure.Runner/bin/release/netcoreapp2.1/publish .
+COPY --from=build /src/src/LetsEncrypt.Azure.Runner/bin/release/netcoreapp2.2/publish .
 
 ENTRYPOINT ["dotnet", "LetsEncrypt.Azure.Runner.dll"]
