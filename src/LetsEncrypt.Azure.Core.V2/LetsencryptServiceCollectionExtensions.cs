@@ -60,20 +60,18 @@ namespace LetsEncrypt.Azure.Core.V2
 
             return serviceCollection
                 .AddTransient<AcmeClient>()
-                .AddTransient<DnsLookupService>()                
+                .AddTransient<DnsLookupService>()
                 .AddSingleton(dnsProviderConfig.GetType(), dnsProviderConfig)
-                .AddTransient<IDnsProvider, TDnsProvider>();               
+                .AddTransient<IDnsProvider, TDnsProvider>();
         }
 
         public static IServiceCollection AddNullCertificateConsumer(this IServiceCollection serviceCollection)
         {
-            
+
             return serviceCollection
                 .AddTransient<ICertificateConsumer, NullCertificateConsumer>()
                 .AddTransient<LetsencryptService>();
         }
-
-
 
         public static IServiceCollection AddAzureAppService(this IServiceCollection serviceCollection, params AzureWebAppSettings[] settings)
         {

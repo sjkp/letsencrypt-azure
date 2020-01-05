@@ -4,7 +4,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Logging;
 
-namespace LetsEncrypt.Azure.FunctionV2
+namespace LetsEncrypt.Azure.FunctionV3
 {
     public static class AutoRenewCertificate
     {

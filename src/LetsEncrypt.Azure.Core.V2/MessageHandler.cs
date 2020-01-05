@@ -35,17 +35,15 @@ namespace LetsEncrypt.Azure.Core.V2
             {
                 responseMessage = await response.Content.ReadAsByteArrayAsync();
             }
-           
+
             await OutgoingMessageAsync(corrId, requestInfo, responseMessage);
 
             return response;
         }
 
-
         protected abstract Task IncommingMessageAsync(string correlationId, string requestInfo, byte[] message);
         protected abstract Task OutgoingMessageAsync(string correlationId, string requestInfo, byte[] message);
     }
-
 
 
     public class MessageLoggingHandler : MessageHandler
@@ -56,12 +54,12 @@ namespace LetsEncrypt.Azure.Core.V2
         {
             this.logger = logger;
         }
+
         protected override async Task IncommingMessageAsync(string correlationId, string requestInfo, byte[] message)
         {
             await Task.Run(() =>
                 logger.LogInformation(string.Format("{0} - Request: {1}\r\n{2}", correlationId, requestInfo, message != null ? Encoding.UTF8.GetString(message) : String.Empty)));
         }
-
 
         protected override async Task OutgoingMessageAsync(string correlationId, string requestInfo, byte[] message)
         {

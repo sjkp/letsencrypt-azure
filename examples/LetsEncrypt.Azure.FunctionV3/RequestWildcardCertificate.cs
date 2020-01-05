@@ -16,7 +16,7 @@ using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Azure.KeyVault;
 using System.Web.Http;
 
-namespace LetsEncrypt.Azure.FunctionV2
+namespace LetsEncrypt.Azure.FunctionV3
 {
     public static class RequestWildcardCertificate
     {
@@ -30,11 +30,11 @@ namespace LetsEncrypt.Azure.FunctionV2
                 await Helper.InstallOrRenewCertificate(log);
 
                 return new OkResult();
-            } catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 log.LogError(ex.ToString());
                 return new ExceptionResult(ex, true);
-                
             }
         }
     }

@@ -4,6 +4,7 @@ using LetsEncrypt.Azure.Core.V2.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace LetsEncrypt.Azure.Core.V2
@@ -13,7 +14,6 @@ namespace LetsEncrypt.Azure.Core.V2
         private readonly AcmeClient acmeClient;
         private readonly ICertificateStore certificateStore;
         private readonly ICertificateConsumer certificateConsumer;
-        private readonly AzureWebAppService azureWebAppService;
         private readonly ILogger<LetsencryptService> logger;
 
         public LetsencryptService(AcmeClient acmeClient, ICertificateStore certificateStore, ICertificateConsumer certificateConsumer, ILogger<LetsencryptService> logger = null)
@@ -23,13 +23,15 @@ namespace LetsEncrypt.Azure.Core.V2
             this.certificateConsumer = certificateConsumer;
             this.logger = logger ?? NullLogger<LetsencryptService>.Instance;
         }
-        public async Task Run(AcmeDnsRequest acmeDnsRequest, int renewXNumberOfDaysBeforeExpiration)
+
+        public async Task Run(IAcmeDnsRequest acmeDnsRequest, int renewXNumberOfDaysBeforeExpiration)
         {
             try
             {
                 CertificateInstallModel model = null;
-                
-                var certname = acmeDnsRequest.Host.Substring(2) + "-" + acmeDnsRequest.AcmeEnvironment.Name;
+
+                string hostsPlusSeparated = AcmeClient.GetHostsPlusSeparated(acmeDnsRequest.Hosts);
+                var certname = $"{hostsPlusSeparated}-{acmeDnsRequest.AcmeEnvironment.Name}";
                 var cert = await certificateStore.GetCertificate(certname, acmeDnsRequest.PFXPassword);
                 if (cert == null || cert.Certificate.NotAfter < DateTime.UtcNow.AddDays(renewXNumberOfDaysBeforeExpiration)) //Cert doesnt exist or expires in less than renewXNumberOfDaysBeforeExpiration days, lets renew.
                 {
@@ -44,7 +46,7 @@ namespace LetsEncrypt.Azure.Core.V2
                     model = new CertificateInstallModel()
                     {
                         CertificateInfo = cert,
-                        Host = acmeDnsRequest.Host
+                        Hosts = acmeDnsRequest.Hosts
                     };
                 }
                 await certificateConsumer.Install(model);
@@ -52,7 +54,7 @@ namespace LetsEncrypt.Azure.Core.V2
                 logger.LogInformation("Removing expired certificates");
                 var expired = await certificateConsumer.CleanUp();
                 logger.LogInformation("The following certificates was removed {Thumbprints}", string.Join(", ", expired.ToArray()));
-                
+
             }
             catch (Exception e)
             {

@@ -11,14 +11,14 @@ namespace Letsencrypt.Azure.Core.Test
         [TestMethod]
         public async Task TestLogging()
         {
-            ILoggerFactory loggerFactory = new LoggerFactory()
-            .AddConsole()            
-            .AddDebug();
+            ILoggerFactory loggerFactory = LoggerFactory.Create(builder =>
+                builder.AddConsole()
+                       .AddDebug());
             var logger = loggerFactory.CreateLogger<AcmeClient>();
             logger.LogInformation("Initial message");
-         
+
             var client = new AcmeClientTest(logger);
             await client.TestEndToEndAzure();
-        }      
+        }
     }
 }

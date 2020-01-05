@@ -7,11 +7,10 @@
     "hostingPlanName": { "value": "letsencryptrunner" },
     "targetWebAppResourceGroupName": { "value": "LetsEncrypt.Wildcard.Function" },
     "targetWebAppName": { "value": "sjkpletsencrypt" },
-    "dnsZoneName": { "value": "ai4bots.com" },
     "dnsResourceGroupName": { "value": "dns" },
     "csrOrganisation": { "value": "sjkp" },
     "acmeRegistrationEmail": { "value": "mail@sjkp.dk" },
-    "certificateDomain": { "value": "*.ai4bots.com" },
+    "certificateDomains": { "value": "*.ai4bots.com" },
     "runFromPackage": { "value": "https://letsencryptazure.blob.core.windows.net/releases/126.zip" }
   }
 }
