@@ -22,7 +22,7 @@ namespace LetsEncrypt.Azure.Runner
                   .Build();
 
             var azureAppSettings = new AzureWebAppSettings[] { };
-            
+
             if (Configuration.GetSection("AzureAppService").Exists())
             {
                 azureAppSettings = new[] { Configuration.GetSection("AzureAppService").Get<AzureWebAppSettings>() };
@@ -43,16 +43,18 @@ namespace LetsEncrypt.Azure.Runner
                 c.AddConsole();
                 //c.AddDebug();
             })
-            .Configure<LoggerFilterOptions>(options => options.MinLevel = LogLevel.Information)            
+            .Configure<LoggerFilterOptions>(options => options.MinLevel = LogLevel.Information)
             .AddAzureAppService(azureAppSettings);
 
             if (Configuration.GetSection("DnsSettings").Get<GoDaddyDnsProvider.GoDaddyDnsSettings>().ShopperId != null)
             {
                 serviceCollection.AddAcmeClient<GoDaddyDnsProvider>(Configuration.GetSection("DnsSettings").Get<GoDaddyDnsProvider.GoDaddyDnsSettings>());
-            } else if (Configuration.GetSection("DnsSettings").Get<UnoEuroDnsSettings>().AccountName != null)
+            }
+            else if (Configuration.GetSection("DnsSettings").Get<UnoEuroDnsSettings>().AccountName != null)
             {
                 serviceCollection.AddAcmeClient<UnoEuroDnsProvider>(Configuration.GetSection("DnsSettings").Get<UnoEuroDnsSettings>());
-            } else if (Configuration.GetSection("DnsSettings").Get<AzureDnsSettings>().ResourceGroupName != null)
+            }
+            else if (Configuration.GetSection("DnsSettings").Get<AzureDnsSettings>().ResourceGroupName != null)
             {
                 serviceCollection.AddAcmeClient<AzureDnsProvider>(Configuration.GetSection("DnsSettings").Get<AzureDnsSettings>());
             }

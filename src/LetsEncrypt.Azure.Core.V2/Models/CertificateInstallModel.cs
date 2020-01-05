@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Text;
 
 namespace LetsEncrypt.Azure.Core.V2.Models
@@ -12,24 +13,18 @@ namespace LetsEncrypt.Azure.Core.V2.Models
         /// <summary>
         /// Certificate info.
         /// </summary>
-        public CertificateInfo CertificateInfo
-        {
-            get; set;
-        }
+        public CertificateInfo CertificateInfo { get; set; }
 
         /// <summary>
-        /// The primary host name. 
+        /// The primary host name.
         /// </summary>
-        public string Host
-        {
-            get; set;
-        }
+        public ImmutableArray<string> Hosts { get; set; }
     }
 
     public interface ICertificateInstallModel
     {
         CertificateInfo CertificateInfo { get; set; }
 
-        string Host { get; set; }
-    }    
+        ImmutableArray<string> Hosts { get; set; }
+    }
 }

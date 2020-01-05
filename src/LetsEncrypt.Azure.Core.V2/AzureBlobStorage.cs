@@ -1,5 +1,5 @@
-﻿using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
+﻿using Microsoft.Azure.Storage;
+using Microsoft.Azure.Storage.Blob;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -26,9 +26,7 @@ namespace LetsEncrypt.Azure.Core.V2
             var container = client.GetContainerReference("letsencrypt");
             await container.CreateIfNotExistsAsync();
 
-            
             var blob = container.GetBlockBlobReference(v);
-
             return blob;
         }
 
@@ -52,7 +50,7 @@ namespace LetsEncrypt.Azure.Core.V2
             {
                 await data.CopyToAsync(ms);
                 return ms.ToArray();
-            }           
+            }
         }
 
         public async Task Write(string v, byte[] data)

@@ -30,11 +30,11 @@ namespace LetsEncrypt.Azure.FunctionV2
                 await Helper.InstallOrRenewCertificate(log);
 
                 return new OkResult();
-            } catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 log.LogError(ex.ToString());
                 return new ExceptionResult(ex, true);
-                
             }
         }
     }

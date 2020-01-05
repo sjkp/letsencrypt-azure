@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -19,56 +20,45 @@ namespace LetsEncrypt.Azure.Core.V2
             this.logger = logger ?? NullLogger<DnsLookupService>.Instance;
         }
 
-        public async Task<bool> Exists(string hostname, string dnsTxt, int timeout = 60)
+        public async Task<bool> Exists(string zoneName, string dnsTxt, int timeout = 60)
         {
-            logger.LogInformation("Starting dns precheck validation for hostname: {HostName} challenge: {Challenge} and timeout {Timeout}", hostname, dnsTxt, timeout);
+            logger.LogInformation("Starting dns precheck validation for hostname: {HostName} challenge: {Challenge} and timeout {Timeout}", zoneName, dnsTxt, timeout);
             var idn = new IdnMapping();
-            hostname = idn.GetAscii(GetNoneWildcardDomain(hostname));
-            var dnsClient = GetDnsClient(hostname);
+            zoneName = idn.GetAscii(zoneName);
+            var dnsClient = GetDnsClient(zoneName);
             var startTime = DateTime.UtcNow;
-            string queriedDns = "";
-            //Lets encrypt checks a random authoritative server, thus we need to ensure that all respond with the challenge. 
-            foreach (var ns in dnsClient.NameServers)
+            bool result = false;
+            do
             {
-                logger.LogInformation("Validating dns challenge exists on name server {NameServer}", ns.ToString());
-                do
+                var servers = dnsClient.NameServers.Select(s => s.Endpoint.Address).ToImmutableArray();
+                logger.LogInformation("Validating dns challenge exists on name servers {NameServers}", string.Join(", ", servers));
+                var dnsRes = dnsClient.QueryServer(servers, $"_acme-challenge.{zoneName}", QueryType.TXT);
+                result = dnsRes.Answers.TxtRecords().FirstOrDefault()?.Text.Any(r => r == dnsTxt) ?? false;
+                if (!result)
                 {
-                    var dnsRes = dnsClient.QueryServer(new[] { ns.Endpoint.Address }, $"_acme-challenge.{hostname}", QueryType.TXT);
-                    queriedDns = dnsRes.Answers.TxtRecords().FirstOrDefault()?.Text.FirstOrDefault();
-                    if (queriedDns != dnsTxt)
-                    {
-                        logger.LogInformation("Challenge record was {existingTxt} should have been {Challenge}, retrying again in 5 seconds", queriedDns, dnsTxt);
-                        await Task.Delay(5000);
-                    }
+                    logger.LogInformation("Challenge record missing, retrying again in 5 seconds");
+                    await Task.Delay(5000);
+                }
 
-                } while (queriedDns != dnsTxt && (DateTime.UtcNow - startTime).TotalSeconds < timeout);
-            }
+            } while (!result && (DateTime.UtcNow - startTime).TotalSeconds < timeout);
 
-            return queriedDns == dnsTxt;
+            return result;
         }
 
-        private static LookupClient GetDnsClient(params string[] hostnames)
+        private static LookupClient GetDnsClient(string zoneName)
         {
-
             LookupClient generalClient = new LookupClient();
-            LookupClient dnsClient = null;
             generalClient.UseCache = false;
-            foreach (var hostname in hostnames)
-            {
-                var ns = generalClient.Query(hostname, QueryType.NS);
-                var ip = ns.Answers.NsRecords().Select(s => generalClient.GetHostEntry(s.NSDName.Value));
-            
-                dnsClient = new LookupClient(ip.SelectMany(i => i.AddressList).Where(s => s.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork).ToArray());
-                dnsClient.UseCache = false;
-                
-            }
+            var ns = generalClient.Query(zoneName, QueryType.NS);
+            var ip = ns.Answers.NsRecords().Select(s => generalClient.GetHostEntry(s.NSDName.Value));
+
+            var nameServers = ip.SelectMany(i => i.AddressList)
+                                .Where(s => s.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                                .ToArray();
+            LookupClient dnsClient = new LookupClient(nameServers);
+            dnsClient.UseCache = false;
 
             return dnsClient;
-        }
-
-        public static string GetNoneWildcardDomain(string hostname)
-        {
-            return hostname.Replace("*.", "");
         }
     }
 }
