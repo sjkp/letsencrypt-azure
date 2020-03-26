@@ -39,10 +39,10 @@ namespace LetsEncrypt.Azure.Core.V2
                         siteOrSlot = slot;
                     }
 
-                    var existingCerts = await appServiceManager.AppServiceCertificates.ListByResourceGroupAsync(setting.ServicePlanResourceGroupName ?? setting.ResourceGroupName);
+                    var existingCerts = await appServiceManager.AppServiceCertificates.ListByResourceGroupAsync(setting.ServicePlanOrResourceGroupName);
                     if (existingCerts.All(_ => _.Thumbprint != cert.Certificate.Thumbprint))
                     {
-                        await appServiceManager.AppServiceCertificates.Define(model.Host + "-" + cert.Certificate.Thumbprint).WithRegion(s.RegionName).WithExistingResourceGroup(setting.ServicePlanResourceGroupName ?? setting.ResourceGroupName).WithPfxByteArray(model.CertificateInfo.PfxCertificate).WithPfxPassword(model.CertificateInfo.Password).CreateAsync();
+                        await appServiceManager.AppServiceCertificates.Define(model.Host + "-" + cert.Certificate.Thumbprint).WithRegion(s.RegionName).WithExistingResourceGroup(setting.ServicePlanOrResourceGroupName).WithPfxByteArray(model.CertificateInfo.PfxCertificate).WithPfxPassword(model.CertificateInfo.Password).CreateAsync();
                     }
 
 
@@ -66,11 +66,11 @@ namespace LetsEncrypt.Azure.Core.V2
                             };
                             if (!string.IsNullOrEmpty(setting.SiteSlotName))
                             {
-                                await appServiceManager.Inner.WebApps.CreateOrUpdateHostNameBindingSlotAsync(setting.ServicePlanResourceGroupName ?? setting.ResourceGroupName, setting.WebAppName, hostName, binding, setting.SiteSlotName);
+                                await appServiceManager.Inner.WebApps.CreateOrUpdateHostNameBindingSlotAsync(setting.ServicePlanOrResourceGroupName, setting.WebAppName, hostName, binding, setting.SiteSlotName);
                             }
                             else
                             {
-                                await appServiceManager.Inner.WebApps.CreateOrUpdateHostNameBindingAsync(setting.ServicePlanResourceGroupName ?? setting.ResourceGroupName, setting.WebAppName, hostName, binding);
+                                await appServiceManager.Inner.WebApps.CreateOrUpdateHostNameBindingAsync(setting.ServicePlanOrResourceGroupName, setting.WebAppName, hostName, binding);
                             }
                         }
                     }
@@ -99,7 +99,7 @@ namespace LetsEncrypt.Azure.Core.V2
             foreach (var setting in this.settings)
             {
                 var appServiceManager = GetAppServiceManager(setting);
-                var certs = await appServiceManager.AppServiceCertificates.ListByResourceGroupAsync(setting.ServicePlanResourceGroupName ?? setting.ResourceGroupName);
+                var certs = await appServiceManager.AppServiceCertificates.ListByResourceGroupAsync(setting.ServicePlanOrResourceGroupName);
 
                 var tobeRemoved = certs.Where(s => s.ExpirationDate < DateTime.UtcNow.AddDays(removeXNumberOfDaysBeforeExpiration) && (s.Issuer.Contains("Let's Encrypt") || s.Issuer.Contains("Fake LE"))).ToList();
 
@@ -112,7 +112,7 @@ namespace LetsEncrypt.Azure.Core.V2
 
         private async Task RemoveCertificate(IAppServiceManager webSiteClient, IAppServiceCertificate s, AzureWebAppSettings setting)
         {
-            await webSiteClient.AppServiceCertificates.DeleteByResourceGroupAsync(setting.ServicePlanResourceGroupName ?? setting.ResourceGroupName, s.Name);
+            await webSiteClient.AppServiceCertificates.DeleteByResourceGroupAsync(setting.ServicePlanOrResourceGroupName, s.Name);
         }
 
 

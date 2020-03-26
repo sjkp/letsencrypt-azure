@@ -8,6 +8,8 @@ using LetsEncrypt.Azure.Core.V2.DnsProviders;
 using LetsEncrypt.Azure.Core;
 using System.Threading.Tasks;
 using LetsEncrypt.Azure.Core.V2.CertificateStores;
+using Microsoft.Azure.KeyVault;
+using Microsoft.Rest;
 
 namespace LetsEncrypt.Azure.Runner
 {
@@ -20,6 +22,14 @@ namespace LetsEncrypt.Azure.Runner
                   .AddJsonFile("settings.json", true)
                   .AddEnvironmentVariables()
                   .Build();
+
+            IServiceCollection serviceCollection = new ServiceCollection();
+            serviceCollection.AddLogging(c =>
+            {
+                c.AddConsole();
+                //c.AddDebug();
+            })
+            .Configure<LoggerFilterOptions>(options => options.MinLevel = LogLevel.Information);
 
             var azureAppSettings = new AzureWebAppSettings[] { };
             
@@ -34,17 +44,33 @@ namespace LetsEncrypt.Azure.Runner
 
             if (azureAppSettings.Length == 0)
             {
-                throw new ArgumentNullException("Must provide either AzureAppService configuration section or AzureAppServices configuration section");
+                serviceCollection.AddNullCertificateConsumer();
+            }
+            else
+            {
+                serviceCollection.AddAzureAppService(azureAppSettings);
             }
 
-            IServiceCollection serviceCollection = new ServiceCollection();
-            serviceCollection.AddLogging(c =>
+            if (!string.IsNullOrEmpty(Configuration.GetSection("CertificateStore").Get<BlobCertificateStoreAppSettings>().ConnectionString))
             {
-                c.AddConsole();
-                //c.AddDebug();
-            })
-            .Configure<LoggerFilterOptions>(options => options.MinLevel = LogLevel.Information)            
-            .AddAzureAppService(azureAppSettings);
+                var blobSettings = Configuration.GetSection("CertificateStore").Get<BlobCertificateStoreAppSettings>();
+                serviceCollection.AddAzureBlobStorageCertificateStore(blobSettings.ConnectionString);
+            }
+            else if (Configuration.GetSection("CertificateStore").Get<KeyVaultCertificateStoreAppSettings>().BaseUrl != null)
+            {
+                var keyVaultSettings = Configuration.GetSection("CertificateStore").Get<KeyVaultCertificateStoreAppSettings>();
+                serviceCollection.AddTransient<IKeyVaultClient>((service) =>
+                {
+                    return new KeyVaultClient(AzureHelper.GetAzureCredentials(keyVaultSettings.AzureServicePrincipal, keyVaultSettings.AzureSubscription), new MessageLoggingHandler(service.GetService<ILogger>()));
+                });
+                serviceCollection.AddKeyVaultCertificateStore(keyVaultSettings.BaseUrl);
+            }
+            else
+            {
+                //Nothing default a null certificate store will be added.
+            }
+                        
+            
 
             if (Configuration.GetSection("DnsSettings").Get<GoDaddyDnsProvider.GoDaddyDnsSettings>().ShopperId != null)
             {

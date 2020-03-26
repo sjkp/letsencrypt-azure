@@ -13,7 +13,6 @@ namespace LetsEncrypt.Azure.Core.V2
         private readonly AcmeClient acmeClient;
         private readonly ICertificateStore certificateStore;
         private readonly ICertificateConsumer certificateConsumer;
-        private readonly AzureWebAppService azureWebAppService;
         private readonly ILogger<LetsencryptService> logger;
 
         public LetsencryptService(AcmeClient acmeClient, ICertificateStore certificateStore, ICertificateConsumer certificateConsumer, ILogger<LetsencryptService> logger = null)

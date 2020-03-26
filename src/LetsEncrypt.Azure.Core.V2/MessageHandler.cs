@@ -54,6 +54,7 @@ namespace LetsEncrypt.Azure.Core.V2
 
         public MessageLoggingHandler(ILogger logger)
         {
+            this.InnerHandler = new HttpClientHandler();
             this.logger = logger;
         }
         protected override async Task IncommingMessageAsync(string correlationId, string requestInfo, byte[] message)

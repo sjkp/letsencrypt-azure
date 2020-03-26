@@ -21,6 +21,17 @@
 
         public string ServicePlanResourceGroupName { get; set; }
 
+        /// <summary>
+        /// Returns service plan resource group name unless empty then returns resource group name.
+        /// </summary>
+        public string ServicePlanOrResourceGroupName
+        {
+            get
+            {
+                return string.IsNullOrEmpty(ServicePlanResourceGroupName) ? ResourceGroupName : ServicePlanResourceGroupName;
+            }
+        }
+
         public string SiteSlotName { get; set; }
 
         public bool UseIPBasedSSL { get; set; }

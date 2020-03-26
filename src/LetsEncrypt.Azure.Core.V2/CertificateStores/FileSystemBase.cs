@@ -33,10 +33,9 @@ namespace LetsEncrypt.Azure.Core.V2.CertificateStores
             };
         }
 
-        public Task SaveCertificate(CertificateInfo certificate)
+        public async Task SaveCertificate(CertificateInfo certificate)
         {
-            this.fileSystem.Write(certificate.Name+fileExtension, certificate.PfxCertificate);
-            return Task.CompletedTask;
+            await this.fileSystem.Write(certificate.Name+fileExtension, certificate.PfxCertificate);
         }
 
         public async Task<string> GetSecret(string name)
@@ -47,10 +46,9 @@ namespace LetsEncrypt.Azure.Core.V2.CertificateStores
             return System.Text.Encoding.UTF8.GetString(await this.fileSystem.Read(filename));
         }
 
-        public Task SaveSecret(string name, string secret)
+        public async Task SaveSecret(string name, string secret)
         {
-            this.fileSystem.Write(name + fileExtension, Encoding.UTF8.GetBytes(secret));
-            return Task.CompletedTask;
+            await this.fileSystem.Write(name + fileExtension, Encoding.UTF8.GetBytes(secret));
         }
     }
 }

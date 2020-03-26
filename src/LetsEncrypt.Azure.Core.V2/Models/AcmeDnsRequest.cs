@@ -54,8 +54,7 @@ namespace LetsEncrypt.Azure.Core.V2.Models
         public string State { get; set; }
         public string Locality { get; set; }
         public string Organization { get; set; }
-        public string OrganizationUnit { get; set; }        
-        public string CommonName { get; set; }
+        public string OrganizationUnit { get; set; }
     }
 
     public class AcmeEnvironment

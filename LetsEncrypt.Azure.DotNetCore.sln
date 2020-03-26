@@ -21,6 +21,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LetsEncrypt.Azure.FunctionV2", "examples\LetsEncrypt.Azure.FunctionV2\LetsEncrypt.Azure.FunctionV2.csproj", "{FF8A14C9-8AC7-4057-A2EC-BA31C3965079}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{33597FE6-D5E9-4F8E-9009-294BFC3D5F9A}"
+	ProjectSection(SolutionItems) = preProject
+		settings.json = settings.json
+	EndProjectSection
 EndProject
 Project("{151D2E53-A2C4-4D7D-83FE-D05416EBD58E}") = "LetsEncrypt.Azure.ResourceGroup", "src\LetsEncrypt.Azure.ResourceGroup\LetsEncrypt.Azure.ResourceGroup.deployproj", "{18992D22-E4F4-4A82-B1C9-18BFA3D3BFE7}"
 EndProject

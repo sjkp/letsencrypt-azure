@@ -73,12 +73,11 @@ namespace LetsEncrypt.Azure.Core.V2
             var privateKey = await GetOrCreateKey(acmeConfig.AcmeEnvironment.BaseUri, acmeConfig.Host);
             var cert = await order.Generate(new Certes.CsrInfo
             {
-                CountryName = acmeConfig.CsrInfo.CountryName,
-                State = acmeConfig.CsrInfo.State,
-                Locality = acmeConfig.CsrInfo.Locality,
-                Organization = acmeConfig.CsrInfo.Organization,
-                OrganizationUnit = acmeConfig.CsrInfo.OrganizationUnit,
-                CommonName = acmeConfig.CsrInfo.CommonName,
+                CountryName = acmeConfig.CsrInfo?.CountryName,
+                State = acmeConfig.CsrInfo?.State,
+                Locality = acmeConfig.CsrInfo?.Locality,
+                Organization = acmeConfig.CsrInfo?.Organization,
+                OrganizationUnit = acmeConfig.CsrInfo?.OrganizationUnit                
             }, privateKey);
 
             var certPem = cert.ToPem();
@@ -128,13 +127,13 @@ namespace LetsEncrypt.Azure.Core.V2
                 // Save the account key for later use
                 var pemKey = acme.AccountKey.ToPem();
                 await certificateStore.SaveSecret(filename, pemKey);
-                await Task.Delay(10000); //Wait a little before using the new account.
-                acme = new AcmeContext(acmeDirectoryUri, acme.AccountKey, new AcmeHttpClient(acmeDirectoryUri, new HttpClient()));
+               // await Task.Delay(10000); //Wait a little before using the new account.
+                acme = new AcmeContext(acmeDirectoryUri, acme.AccountKey, new AcmeHttpClient(acmeDirectoryUri, new HttpClient(new MessageLoggingHandler(this.logger))));
             }
             else
             {
                 var accountKey = KeyFactory.FromPem(secret);
-                acme = new AcmeContext(acmeDirectoryUri, accountKey, new AcmeHttpClient(acmeDirectoryUri, new HttpClient()));
+                acme = new AcmeContext(acmeDirectoryUri, accountKey, new AcmeHttpClient(acmeDirectoryUri, new HttpClient(new MessageLoggingHandler(this.logger))));
             }
 
             return acme;
