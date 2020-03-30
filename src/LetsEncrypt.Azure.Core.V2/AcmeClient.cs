@@ -52,7 +52,7 @@ namespace LetsEncrypt.Azure.Core.V2
             logger.LogInformation("Got DNS challenge token {Token}", dnsTxt);
 
             ///add dns entry
-            await this.dnsProvider.PersistChallenge("_acme-challenge", dnsTxt);
+            await this.dnsProvider.PersistChallenge(String.Concat("_acme-challenge.", DnsLookupService.GetNoneWildcardSubdomain(acmeConfig.Host)), dnsTxt);
 
             if (!(await this.dnsLookupService.Exists(acmeConfig.Host, dnsTxt, this.dnsProvider.MinimumTtl)))
             {
