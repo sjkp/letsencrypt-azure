@@ -11,7 +11,7 @@ Deployment template for setting up Let's Encrypt wild card certificate for Azure
 
 # What is Let's Encrypt Azure
 
-Let's Encrypt Azure is my second attempt to bring support for Let's Encrypt certificates on Azure. It is the spiritual successor to the Let's Encrypt Site-Extension, although they for the momemt support different usage scenarios. 
+Let's Encrypt Azure is my second attempt to bring support for Let's Encrypt certificates on Azure. It is the spiritual successor to the Let's Encrypt Site-Extension, although they for the moment support different usage scenarios. 
 
 | Feature | Let's Encrypt Azure |	Let's Encrypt Site-Extension
 |-----| ---- | ----
